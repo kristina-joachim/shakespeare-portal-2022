@@ -1,16 +1,14 @@
 import { Login, Agenda } from "@microsoft/mgt-react";
 import useIsSignedIn from "./useIsSignedIn.hook";
 import styled from "styled-components";
+import { useState } from "react";
 
 const TestPage = () => {
   const [isSignedIn] = useIsSignedIn();
+  const [data, setData] = useState(null);
 
   const authSignIn = async () => {
-    const response = await fetch("/auth/signin")
-      .then((res) => res.json())
-      .catch((error) => console.log(error))
-      .finally((data) => data);
-    console.log(response);
+    await fetch("api/signin", { mode: "no-cors" }).then((res) => window.location.assign(res.json()));
   };
 
   return (

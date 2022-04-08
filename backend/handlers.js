@@ -14,6 +14,15 @@ const msalConfig = {
   cache: {
     cacheLocation: "sessionStorage",
   },
+  system: {
+    loggerOptions: {
+      loggerCallback(loglevel, message, containsPii) {
+        console.log(message);
+      },
+      piiLoggingEnabled: false,
+      logLevel: LogLevel.Verbose,
+    },
+  },
 };
 //Create Authentication Client
 const msalClient = new ConfidentialClientApplication(msalConfig);
@@ -27,6 +36,7 @@ const msalSignIn = async () => {
   const response = { status: 200, error: false, data: null, message: "" };
   try {
     const authURL = await msalClient.getAuthCodeUrl(urlParams);
+    //Authentication URL for sign in returned
     response.data = authURL;
     response.message = "Success. Redirecting for sign in";
   } catch (error) {

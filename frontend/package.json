@@ -1,7 +1,7 @@
 {
   "name": "frontend",
   "version": "0.1.0",
-  "proxy": "http://localhost:8000",
+  "proxy": "http://localhost:8000/",
   "private": true,
   "dependencies": {
     "@microsoft/mgt-element": "^2.4.0",
