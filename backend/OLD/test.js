@@ -2,18 +2,18 @@
 const { LogLevel, ConfidentialClientApplication } = require("@azure/msal-node");
 //import { Client } from "@microsoft/microsoft-graph-client";
 require("dotenv").config(); //
-const { OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET, OAUTH_AUTHORITY, OAUTH_SCOPES, OAUTH_REDIRECT_URI } = process.env;
+const { MSAL_CLIENT_ID, MSAL_CLIENT_SECRET, MSAL_AUTHORITY, MSAL_SCOPES, MSAL_REDIRECT_URI } = process.env;
 
 //Authentication Config
 const msalConfig = {
   auth: {
-    clientId: OAUTH_CLIENT_ID,
-    clientSecret: OAUTH_CLIENT_SECRET,
-    authority: OAUTH_AUTHORITY,
+    clientId: MSAL_CLIENT_ID,
+    clientSecret: MSAL_CLIENT_SECRET,
+    authority: MSAL_AUTHORITY,
   },
-  cache: {
+  /*   cache: {
     cacheLocation: "sessionStorage",
-  },
+  }, */
   system: {
     loggerOptions: {
       loggerCallback(loglevel, message, containsPii) {
@@ -24,18 +24,27 @@ const msalConfig = {
     },
   },
 };
+
 //Create Authentication Client
 const msalClient = new ConfidentialClientApplication(msalConfig);
 
 //Sign In Authenticator
-const msalSignIn = async () => {
+const msalSignIn = async (scopes = OAUTH_SCOPES.split(","), redirect = OAUTH_REDIRECT_URI, client = msalClient) => {
+  console.log("Requesting URL from msalClient...");
+
   const urlParams = {
-    scopes: OAUTH_SCOPES.split(","),
-    redirectUri: OAUTH_REDIRECT_URI,
+    scopes: scopes,
+    redirectUri: redirect,
   };
   const response = { status: 200, error: false, data: null, message: "" };
+  console.log("Requesting URL from msalClient...");
+
   try {
-    const authURL = await msalClient.getAuthCodeUrl(urlParams);
+    console.log("Requesting URL from msalClient...");
+
+    const authURL = await client.getAuthCodeUrl(urlParams);
+    console.log(authURL);
+
     //Authentication URL for sign in returned
     response.data = authURL;
     response.message = "Success. Redirecting for sign in";
