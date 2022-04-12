@@ -56,7 +56,7 @@ const Redirect = ({ type }) => {
         const userInfo = userAccnt && {
           userID: userAccnt.homeAccountId,
           name: userAccnt.name,
-          email: userAccnt.email,
+          email: userAccnt.username,
         };
         console.log("Got User data", userInfo);
         userInfo != null && setCurrUser({ ...userInfo });

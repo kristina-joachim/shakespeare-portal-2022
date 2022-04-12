@@ -40,6 +40,7 @@ const TestPage = () => {
           <Content>
             <h1>Welcome, {currUser.name}</h1>
             <h3>{currUser.email}</h3>
+            <br />
             {apiRes && <div>{JSON.stringify(apiRes)}</div>}
           </Content>
         </>
