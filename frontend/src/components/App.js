@@ -8,11 +8,15 @@ const App = () => {
     <>
       <GlobalStyles />
       <Routes>
-        <Route path="/" index element={<TestPage />} />
+        <Route path="/">
+          <Route index element={<TestPage />} />
 
-        {/* Server Fetch links */}
-        <Route path="/auth/:type" element={<Redirect end="server" />} />
-        {/* External links */}
+          {/* Server Fetch links */}
+          <Route path="auth/*" element={<Redirect type="server" />} />
+          {/* External links */}
+          {<Route path="http\\:/*" element={<Redirect type="external" />} />}
+          {<Route path="https\\:/*" element={<Redirect type="external" />} />}
+        </Route>
       </Routes>
     </>
   );

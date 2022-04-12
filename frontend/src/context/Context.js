@@ -1,16 +1,18 @@
+import usePersistedState from "../hooks/usePersistedState.hook";
 const { createContext, useState } = require("react");
 
 const MyContext = createContext(null);
 
 const MyProvider = ({ children }) => {
-  const [apiRes, setApiRes] = useState(null);
+  const [apiRes, setApiRes] = useState({});
   const [currUser, setCurrUser] = useState(null);
+  const [redirect, setRedirect] = usePersistedState("", "redirect");
 
   return (
     <>
       <MyContext.Provider
         value={{
-          api: { apiRes, setApiRes },
+          states: { apiRes, setApiRes, redirect, setRedirect },
           user: { currUser, setCurrUser },
         }}
       >

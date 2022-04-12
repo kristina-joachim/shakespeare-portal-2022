@@ -22,10 +22,10 @@ AUTH_ROUTER
     const authCode = req.query.code;
 
     // GET Response
-    const response = await microsoft.getAuthToken(authCode);
-
+    const rresponse = await microsoft.getAuthToken(authCode);
+    console.log("GOT AUTH TOKEN", rresponse);
     //Server Response
-    res.status(response.status).json(response);
+    res.status(rresponse.status).json(rresponse);
   })
   .get("/signout", async (req, res) => {
     //Query Param to pass

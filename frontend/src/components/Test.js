@@ -1,74 +1,49 @@
 import styled from "styled-components";
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { MyContext } from "../context/Context";
 
 const TestPage = () => {
   const {
-    api: { apiRes },
-    user: { currUser, setCurrUser },
+    states: { apiRes },
+    user: { currUser },
   } = useContext(MyContext);
-
-  const authSignIn = async () => {
-    const res = await fetch("auth/signin");
-    console.log(res);
-    if (res.ok) window.location.assign(res.url);
-  };
-
-  const logOut = async () => {
-    const res = await fetch("auth/signout");
-    console.log(res);
-    if (!res.ok) {
-      window.alert("An error occurred. Please try to sign out again");
-    }
-  };
+  const [login, setLogin] = useState(null);
 
   useEffect(() => {
-    if (apiRes && apiRes.data) {
-      console.log(apiRes);
-      switch (apiRes.url) {
-        case "/auth/signin":
-          const userAccnt = apiRes.data && apiRes.data.account;
-          const userInfo = userAccnt && {
-            userID: userAccnt.homeAccountId,
-            name: userAccnt.name,
-            email: userAccnt.email,
-          };
-          userInfo && setCurrUser({ ...userInfo });
-          break;
-        case "/auth/signout":
-          if (currUser) setCurrUser(null);
-          break;
-        default:
-          break;
-      }
-    }
-  }, [apiRes]); // eslint-disable-line react-hooks/exhaustive-deps
+    console.log("User logged in?", currUser);
+    if (currUser) setLogin(true);
+    else setLogin(false);
+  }, [currUser]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>
-      <NavBar>
-        {currUser == null ? (
-          <>
+      {login !== true ? (
+        <>
+          <NavBar>
             {/* <SignInBtn onClick={authSignIn}>Log In!</SignInBtn> */}
             <GoToBtn to="/auth/signin">Log In!</GoToBtn>
-          </>
-        ) : (
-          <>
+          </NavBar>
+          <Content>
+            <h1>Welcome,</h1>
+            <h3>Please log in to get started.</h3>
+            {apiRes && <div>{JSON.stringify(apiRes)}</div>}
+          </Content>
+        </>
+      ) : (
+        <>
+          <NavBar>
             <CurrUserName>Hello {currUser.name}!</CurrUserName>
             <GoToBtn to="/auth/signout">Sign Out?</GoToBtn>
             {/* <LogOutBtn onClick={logOut}>Sign Out</LogOutBtn> */}
-          </>
-        )}
-      </NavBar>
-      <Content>
-        {currUser && (
-          <>
+          </NavBar>
+          <Content>
             <h1>Welcome, {currUser.name}</h1>
             <h3>{currUser.email}</h3>
-          </>
-        )}
-      </Content>
+            {apiRes && <div>{JSON.stringify(apiRes)}</div>}
+          </Content>
+        </>
+      )}
     </>
   );
 };

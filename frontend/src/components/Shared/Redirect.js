@@ -1,72 +1,78 @@
 import { useContext, useEffect } from "react";
 import { MyContext } from "../../context/Context";
-const { useLocation, useNavigate, useParams } = require("react-router-dom");
+const { useLocation, useNavigate } = require("react-router-dom");
 
-const Redirect = ({ end }) => {
+const Redirect = ({ type }) => {
   const myLoc = useLocation();
   const goTo = useNavigate();
-  const { type } = useParams();
   const {
-    user: { setCurrUser },
-    api: { setApiRes },
+    states: { apiRes, setApiRes, redirect, setRedirect },
+    user: { setCurrUser, currUser },
   } = useContext(MyContext);
 
-  useEffect(() => {
-    console.log(`${end} redirect from`, myLoc);
+  const getServerData = async (url, options = {}) => {
+    console.log(`%cFetching from ${myLoc.pathname}`, "color: red");
+    const response = await fetch(url, options);
+    const data = await response.json();
+    const tempState = {};
+    tempState[myLoc.pathname] = {
+      endpoint: myLoc.pathname,
+      ...data,
+    };
+    setApiRes({ ...apiRes, ...tempState });
+  };
 
-    switch (end) {
+  useEffect(() => {
+    console.log(`${type} redirect from`, myLoc);
+    switch (type) {
       case "external":
-        //console.log("To:", myLoc.pathname.substring(1) + myLoc.search);
-        //console.groupEnd("REDIRECTING");
         console.log("Going External...");
         window.location.replace(myLoc.pathname.substring(1) + myLoc.search);
         break;
       case "server":
-        //console.log("To:", myLoc.pathname + myLoc.search);
-        const myResults = { url: myLoc.pathname, error: false };
-        fetch(myLoc.pathname + myLoc.search)
-          .then((res) => {
-            myResults.full = res;
-            return res.json();
-          })
-          .then((body) => {
-            myResults.data = body;
-          })
-          .catch((error) => {
-            myResults.error = true;
-            myResults.message = error;
-          })
-          .finally(() => {
-            setApiRes({ ...myResults });
-            //console.log("Data:", myResults);
-            //console.groupEnd("REDIRECTING");
-            switch (myLoc.pathname) {
-              case "/auth/redirect":
-                console.log("Processing...");
-                goTo("/", { replace: true });
-                break;
-              case "/auth/signout":
-                console.log("Signing out...");
-                if (!myResults.error) setCurrUser(null);
-                goTo("/");
-              case "/auth/signin":
-                console.log("Signing in...", myResults.data.data);
-                console.log("Redirecting to:", `/${myResults.data.data}`);
-                goTo(`//${myResults.data.data}`, { });
-              default:
-                goTo("/", { replace: true });
-                break;
-            }
-          });
+        getServerData(myLoc.pathname + myLoc.search);
         break;
       default:
-        //console.log("Invalid Redirect type", type);
-        //console.groupEnd("REDIRECTING");
-        goTo("/");
+        console.log("Current URL", myLoc);
         break;
     }
-    //console.groupEnd("REDIRECTING");
-  }, []);
+  }, [myLoc]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (apiRes != null) {
+      //console.log("To:", myLoc.pathname + myLoc.search);
+      console.log("Server Redirect complete, results:", apiRes);
+
+      const canRedirect = apiRes["/auth/signin"];
+      if (canRedirect != null && !canRedirect.error && canRedirect.redirectURL != null) {
+        delete apiRes["/auth/signin"];
+        console.log("Redirecting to Microsoft for login", canRedirect);
+        window.location.replace(canRedirect.redirectURL);
+      }
+
+      const gotUser = apiRes["/auth/redirect"];
+      if (gotUser && !gotUser.error) {
+        const userAccnt = gotUser.data && gotUser.data.account;
+        const userInfo = userAccnt && {
+          userID: userAccnt.homeAccountId,
+          name: userAccnt.name,
+          email: userAccnt.email,
+        };
+        console.log("Got User data", userInfo);
+        userInfo != null && setCurrUser({ ...userInfo });
+        console.log("Redirecting back home");
+        goTo("/");
+      }
+
+      const userSignOut = apiRes["/auth/signout"];
+      if (userSignOut && !userSignOut.error) {
+        console.log("User logged out", userSignOut);
+        setCurrUser(null);
+        console.log("Redirecting back home");
+        goTo("/");
+      }
+    }
+  }, [apiRes]); // eslint-disable-line react-hooks/exhaustive-deps
 };
 
 export default Redirect;

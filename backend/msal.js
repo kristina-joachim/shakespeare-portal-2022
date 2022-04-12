@@ -40,15 +40,18 @@ const authParams = {
 /* ************************ MSAL HANDLERS ************************ */
 const getAuthURL = async () => {
   //init Response
-  const myResponse = initialResponse;
+  const myResponse = {};
   try {
     //Get Auth URL
     const authURL = await msalClient.getAuthCodeUrl(authParams);
+    console.log("Getting AUTH URL", authURL);
 
     //Confirm got URL
     if (typeof authURL === "string") {
+      myResponse.status = 200;
+      myResponse.error = false;
       myResponse.message = "Got Authentication URL";
-      myResponse.data = authURL;
+      myResponse.redirectURL = authURL;
     } else {
       myResponse.status = 500;
       myResponse.error = true;
@@ -67,13 +70,21 @@ const getAuthURL = async () => {
 
 const getAuthToken = async (code) => {
   //init Response
-  const myResponse = initialResponse;
+  const myResponse = {};
   try {
     //Get Auth Token from Code
     const authToken = await msalClient.acquireTokenByCode({ code, ...authParams });
-    if (authToken.ok) {
+    console.log("Getting TOKEN", authToken);
+    if (authToken.account.homeAccountId) {
+      myResponse.status = 200;
+      myResponse.error = false;
       myResponse.message = "Got Authentication Token";
       myResponse.data = authToken;
+    } else {
+      myResponse.status = 404;
+      myResponse.error = true;
+      myResponse.message = "No user ID found in token response";
+      myResponse.debug = authToken;
     }
   } catch (error) {
     myResponse.status = 500;
