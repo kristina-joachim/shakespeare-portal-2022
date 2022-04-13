@@ -1,12 +1,13 @@
 import { useContext, useEffect } from "react";
 import { MyContext } from "../../context/Context";
+import { clearStoredData } from "../../hooks/usePersistedState.hook";
 const { useLocation, useNavigate } = require("react-router-dom");
 
 const Redirect = ({ type }) => {
   const myLoc = useLocation();
   const goTo = useNavigate();
   const {
-    states: { apiRes, setApiRes, redirect, setRedirect },
+    states: { apiRes, setApiRes, loggedIn, setLoggedIn },
     user: { setCurrUser, currUser },
   } = useContext(MyContext);
 
@@ -36,7 +37,7 @@ const Redirect = ({ type }) => {
         console.log("Current URL", myLoc);
         break;
     }
-  }, [myLoc]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [myLoc.pathname]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (apiRes != null) {
@@ -47,19 +48,35 @@ const Redirect = ({ type }) => {
       if (canRedirect != null && !canRedirect.error && canRedirect.redirectURL != null) {
         delete apiRes["/auth/signin"];
         console.log("Redirecting to Microsoft for login", canRedirect);
+        const loginPage = window.open(canRedirect.redirectURL, "_blank", "popup, ");
         window.location.replace(canRedirect.redirectURL);
       }
 
       const gotUser = apiRes["/auth/redirect"];
       if (gotUser && !gotUser.error) {
-        const userAccnt = gotUser.data && gotUser.data.account;
+        const userAccnt = gotUser.data && gotUser.data.authToken.account;
+        const userDetails = gotUser.data && gotUser.data.user;
         const userInfo = userAccnt && {
           userID: userAccnt.homeAccountId,
           name: userAccnt.name,
           email: userAccnt.username,
         };
+        if (userDetails) {
+          userInfo.timezone = userDetails.mailboxSettings.timeZone;
+          userInfo.formats = {
+            time: userDetails.mailboxSettings.dateFormat,
+            date: userDetails.mailboxSettings.timeFormat,
+          };
+          userInfo.language = {
+            name: userDetails.mailboxSettings.language.displayName,
+            code: userDetails.mailboxSettings.language.locale,
+          };
+        }
+
         console.log("Got User data", userInfo);
         userInfo != null && setCurrUser({ ...userInfo });
+        userInfo != null && setLoggedIn(userAccnt.homeAccountId);
+
         console.log("Redirecting back home");
         goTo("/");
       }
@@ -68,6 +85,7 @@ const Redirect = ({ type }) => {
       if (userSignOut && !userSignOut.error) {
         console.log("User logged out", userSignOut);
         setCurrUser(null);
+        clearStoredData("local", "userID");
         console.log("Redirecting back home");
         goTo("/");
       }

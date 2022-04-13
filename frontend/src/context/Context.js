@@ -6,13 +6,13 @@ const MyContext = createContext(null);
 const MyProvider = ({ children }) => {
   const [apiRes, setApiRes] = useState({});
   const [currUser, setCurrUser] = useState(null);
-  const [redirect, setRedirect] = usePersistedState("", "redirect");
+  const [loggedIn, setLoggedIn] = usePersistedState("local", "userID", false);
 
   return (
     <>
       <MyContext.Provider
         value={{
-          states: { apiRes, setApiRes, redirect, setRedirect },
+          states: { apiRes, setApiRes, loggedIn, setLoggedIn },
           user: { currUser, setCurrUser },
         }}
       >

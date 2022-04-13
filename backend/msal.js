@@ -1,12 +1,13 @@
 "use strict";
 //ENV variables
+require("isomorphic-fetch");
 require("dotenv").config();
 const { MSAL_CLIENT_ID, MSAL_CLIENT_SECRET, MSAL_AUTHORITY, MSAL_SCOPES, MSAL_REDIRECT_URI } = process.env;
-
 //IMPORTS
 const msal = require("@azure/msal-node");
 const { initialResponse } = require("./constants");
-
+const { deleteDBdata, createDBdata, readDBdata, updateDBdata } = require("./crud");
+const graph = require("./graph");
 //Authentication Config
 const clientConfig = {
   auth: {
@@ -14,9 +15,11 @@ const clientConfig = {
     clientSecret: MSAL_CLIENT_SECRET,
     authority: MSAL_AUTHORITY,
   },
-  /*   cache: {
+  cache: {
     cacheLocation: "sessionStorage",
-  }, */
+    storeAuthStateInCookie: false,
+    secureCookies: false,
+  },
   system: {
     loggerOptions: {
       loggerCallback(loglevel, message, containsPii) {
@@ -70,16 +73,39 @@ const getAuthURL = async () => {
 
 const getAuthToken = async (code) => {
   //init Response
-  const myResponse = {};
+  let myResponse = {};
+  let userID;
   try {
     //Get Auth Token from Code
     const authToken = await msalClient.acquireTokenByCode({ code, ...authParams });
     console.log("Getting TOKEN", authToken);
-    if (authToken.account.homeAccountId) {
-      myResponse.status = 200;
-      myResponse.error = false;
-      myResponse.message = "Got Authentication Token";
-      myResponse.data = authToken;
+    userID = authToken.account.homeAccountId;
+
+    if (userID) {
+      const user = await graph.getUserDetails(msalClient, userID);
+      if (user) {
+        myResponse.status = 200;
+        myResponse.error = false;
+        myResponse.message = "Got Authentication Token and User.";
+        myResponse.data = { authToken, user };
+        const crud = await createDBdata("main", {
+          _id: userID,
+          authToken,
+          user,
+        });
+
+        if (crud.error) {
+          return { ...crud, message: "Got Authentication Token. Could not save to DB", authToken };
+        } else {
+          myResponse.message += " Saved in DB";
+          myResponse.crud = crud;
+        }
+      } else {
+        myResponse.status = 404;
+        myResponse.error = true;
+        myResponse.message = "No data found in user response";
+        myResponse.debug = user;
+      }
     } else {
       myResponse.status = 404;
       myResponse.error = true;
@@ -98,28 +124,35 @@ const getAuthToken = async (code) => {
 
 const signOut = async (userID) => {
   //init Response
-  const myResponse = initialResponse;
-
+  const cacheResponse = initialResponse;
+  let myResponse = initialResponse;
   try {
     //User to sign out?
     if (userID) {
+      //Remove from DB
+      const main = await readDBdata("main", { filter: { _id: userID } });
+      console.log(main);
+      myResponse = await deleteDBdata("main", { _id: userID });
+
       //Find users account in list
       const accounts = await msalClient.getTokenCache().getAllAccounts();
+      console.log("accounts", accounts);
       const userAccnt = accounts.find((accnt) => accnt.homeAccountId === userID);
 
       //Found user?
       if (userAccnt) {
         //Yes, remove
         const removed = await msalClient.getTokenCache().removeAccount(userAccnt);
-        myResponse.message = `User ${userID} signed out.`;
-        myResponse.data = removed;
+        cacheResponse.message = `User ${userID} signed out.`;
+        cacheResponse.data = removed;
       } else {
         //invalid userid
-        myResponse.status = 404;
-        myResponse.error = true;
-        myResponse.message = "Could not find a user with that ID.";
-        myResponse.debug = userID;
+        cacheResponse.status = 404;
+        cacheResponse.error = true;
+        cacheResponse.message = "Could not find a user with that ID.";
+        cacheResponse.debug = userID;
       }
+      myResponse.cache = cacheResponse;
     } else {
       //please pass a userID
       myResponse.status = 400;

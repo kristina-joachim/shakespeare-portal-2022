@@ -30,12 +30,13 @@ AUTH_ROUTER
   .get("/signout", async (req, res) => {
     //Query Param to pass
     const userID = req.query.user;
-
+    console.log("USER ID =", userID);
     // GET Response
-    const response = await microsoft.signOut(userID);
+    const rrresponse = await microsoft.signOut(userID);
+    console.log("SIGNED OUT", rrresponse);
 
     //Server Response
-    res.status(response.status).json(response);
+    res.status(rrresponse.status).json(rrresponse);
   });
 
 module.exports = AUTH_ROUTER;
