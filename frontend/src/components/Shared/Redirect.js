@@ -7,8 +7,8 @@ const Redirect = ({ type }) => {
   const myLoc = useLocation();
   const goTo = useNavigate();
   const {
-    states: { apiRes, setApiRes, loggedIn, setLoggedIn },
-    user: { setCurrUser, currUser },
+    states: { apiRes, setApiRes, setLoggedIn },
+    user: { setCurrUser, setCalendars },
   } = useContext(MyContext);
 
   const getServerData = async (url, options = {}) => {
@@ -37,7 +37,7 @@ const Redirect = ({ type }) => {
         console.log("Current URL", myLoc);
         break;
     }
-  }, [myLoc.pathname]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (apiRes != null) {
@@ -45,14 +45,14 @@ const Redirect = ({ type }) => {
       console.log("Server Redirect complete, results:", apiRes);
 
       const canRedirect = apiRes["/auth/signin"];
+      delete apiRes["/auth/signin"];
       if (canRedirect != null && !canRedirect.error && canRedirect.redirectURL != null) {
-        delete apiRes["/auth/signin"];
         console.log("Redirecting to Microsoft for login", canRedirect);
-        const loginPage = window.open(canRedirect.redirectURL, "_blank", "popup, ");
         window.location.replace(canRedirect.redirectURL);
       }
 
       const gotUser = apiRes["/auth/redirect"];
+      delete apiRes["/auth/redirect"];
       if (gotUser && !gotUser.error) {
         const userAccnt = gotUser.data && gotUser.data.authToken.account;
         const userDetails = gotUser.data && gotUser.data.user;
@@ -82,6 +82,7 @@ const Redirect = ({ type }) => {
       }
 
       const userSignOut = apiRes["/auth/signout"];
+      delete apiRes["/auth/signout"];
       if (userSignOut && !userSignOut.error) {
         console.log("User logged out", userSignOut);
         setCurrUser(null);
@@ -89,6 +90,10 @@ const Redirect = ({ type }) => {
         console.log("Redirecting back home");
         goTo("/");
       }
+
+      const calendars = apiRes["/cal/all"];
+      delete apiRes["/cal/all"];
+      if (calendars) setCalendars(calendars.data);
     }
   }, [apiRes]); // eslint-disable-line react-hooks/exhaustive-deps
 };

@@ -5,18 +5,11 @@ const { MSAL_SCOPES, MSAL_REDIRECT_URI } = process.env;
 
 const graph = require("@microsoft/microsoft-graph-client");
 
-const getUserDetails = async (msalClient, userID) => {
-  const client = getAuthenticatedClient(msalClient, userID);
-
-  const user = await client.api("/me").select("displayName,mail,mailboxSettings,userPrincipalName").get();
-
-  return user;
-};
-
-const getAuthenticatedClient = (msalClient, userID) => {
+const getAuthenticatedClient = async (msalClient, userID, userAccount) => {
   if (!msalClient || !userID) {
     throw new Error(`Invalid MSAL state. Client: ${msalClient ? "present" : "missing"}, User ID: ${userID ? "present" : "missing"}`);
   }
+  console.log("Got msalClient and userID is", userID);
 
   // Initialize Graph client
   const client = graph.Client.init({
@@ -25,16 +18,16 @@ const getAuthenticatedClient = (msalClient, userID) => {
     authProvider: async (done) => {
       try {
         // Get the user's account
-        const account = await msalClient.getTokenCache().getAccountByHomeId(userID);
-
-        if (account) {
+        if (userAccount) {
           // Attempt to get the token silently
           // This method uses the token cache and
           // refreshes expired tokens as needed
+          console.log("Got account, getting new token");
+
           const response = await msalClient.acquireTokenSilent({
             scopes: MSAL_SCOPES.split(","),
             redirectUri: MSAL_REDIRECT_URI,
-            account: account,
+            account: userAccount,
           });
 
           // First param to callback is the error,
@@ -47,31 +40,25 @@ const getAuthenticatedClient = (msalClient, userID) => {
       }
     },
   });
+  console.log("Got client", client);
 
   return client;
 };
 
-const getCalendarView = async (msalClient, userId, start, end, timeZone) => {
-  const client = getAuthenticatedClient(msalClient, userId);
+const getUserDetails = async (msalClient, userID, userAccnt) => {
+  const client = await getAuthenticatedClient(msalClient, userID, userAccnt);
 
-  return (
-    client
-      .api("/me/calendarview")
-      // Add Prefer header to get back times in user's timezone
-      .header("Prefer", `outlook.timezone="${timeZone}"`)
-      // Add the begin and end of the calendar window
-      .query({
-        startDateTime: encodeURIComponent(start),
-        endDateTime: encodeURIComponent(end),
-      })
-      // Get just the properties used by the app
-      .select("subject,organizer,start,end")
-      // Order by start time
-      .orderby("start/dateTime")
-      // Get at most 50 results
-      .top(50)
-      .get()
-  );
+  const user = await client.api("/me").select("displayName,mail,mailboxSettings,userPrincipalName").get();
+
+  return user;
 };
 
-module.exports = { getUserDetails, getCalendarView };
+const getUserCalendar = async (msalClient, userID) => {
+  const client = await getAuthenticatedClient(msalClient, userID, userAccnt);
+
+  const calendar = await client.api("/me/calendars").get();
+
+  return calendar;
+};
+
+module.exports = { getAuthenticatedClient, getUserDetails, getUserCalendar };

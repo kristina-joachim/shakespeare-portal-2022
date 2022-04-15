@@ -1,18 +1,70 @@
 "use strict";
 //ENV variables
 require("dotenv").config();
-const { SERVER_PORT } = process.env;
+const { SERVER_PORT, SESSION_SECRET, MONGO_URI, MSAL_AUTHORITY, MSAL_CLIENT_ID, MSAL_CLIENT_SECRET } = process.env;
 
 //Imports
+const msal = require("@azure/msal-node");
 const express = require("express");
+const session = require("express-session");
+const MongoStore = require("connect-mongo");
 const morgan = require("morgan");
 const authRouter = require("./authRouter");
+const calendarRouter = require("./calendarRouter");
+//MongoClient OPtions
+const mongoClient_options = {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+};
+
+//Authentication Config
+const clientConfig = {
+  auth: {
+    clientId: MSAL_CLIENT_ID,
+    clientSecret: MSAL_CLIENT_SECRET,
+    authority: MSAL_AUTHORITY,
+  },
+  cache: {
+    cacheLocation: "sessionStorage",
+    storeAuthStateInCookie: false,
+    secureCookies: false,
+  },
+  system: {
+    loggerOptions: {
+      loggerCallback(loglevel, message, containsPii) {
+        console.log(message);
+      },
+      piiLoggingEnabled: false,
+      logLevel: msal.LogLevel.Verbose,
+    },
+  },
+};
 
 //Create SERVER
 const EXPRESS_SERVER = express();
 
 //Server Setup (CORS FIX, Default headers, Static files, Console logs, JSON, urlEncoding)
+
+EXPRESS_SERVER.use("/", express.static(__dirname + "/"));
+EXPRESS_SERVER.use(morgan("tiny"));
+EXPRESS_SERVER.use(
+  session({
+    secret: SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    store: MongoStore.create({
+      mongoUrl: MONGO_URI,
+      mongoOptions: mongoClient_options,
+    }),
+    unset: "destroy",
+  })
+);
+EXPRESS_SERVER.use(express.json());
+EXPRESS_SERVER.use(express.urlencoded({ extended: false }));
 EXPRESS_SERVER.use(function (req, res, next) {
+  //Session Constants
+  //Create Authentication Client
+  req.session.msalClient = new msal.ConfidentialClientApplication(clientConfig);
   var oneof = false;
   //CORS Fix..
   if (req.headers.origin) {
@@ -40,13 +92,9 @@ EXPRESS_SERVER.use(function (req, res, next) {
     next();
   }
 });
-EXPRESS_SERVER.use("/", express.static(__dirname + "/"));
-EXPRESS_SERVER.use(morgan("tiny"));
-EXPRESS_SERVER.use(express.json());
-EXPRESS_SERVER.use(express.urlencoded({ extended: false }));
-
 //Endpoints
 EXPRESS_SERVER.use("/auth/", authRouter);
+EXPRESS_SERVER.use("/cal/", calendarRouter);
 
 //CatchAll Endpoint
 EXPRESS_SERVER.get("*", (req, res) => {

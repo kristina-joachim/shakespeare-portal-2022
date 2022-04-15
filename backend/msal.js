@@ -2,37 +2,11 @@
 //ENV variables
 require("isomorphic-fetch");
 require("dotenv").config();
-const { MSAL_CLIENT_ID, MSAL_CLIENT_SECRET, MSAL_AUTHORITY, MSAL_SCOPES, MSAL_REDIRECT_URI } = process.env;
+const { MSAL_SCOPES, MSAL_REDIRECT_URI } = process.env;
 //IMPORTS
-const msal = require("@azure/msal-node");
 const { initialResponse } = require("./constants");
 const { deleteDBdata, createDBdata, readDBdata, updateDBdata } = require("./crud");
 const graph = require("./graph");
-//Authentication Config
-const clientConfig = {
-  auth: {
-    clientId: MSAL_CLIENT_ID,
-    clientSecret: MSAL_CLIENT_SECRET,
-    authority: MSAL_AUTHORITY,
-  },
-  cache: {
-    cacheLocation: "sessionStorage",
-    storeAuthStateInCookie: false,
-    secureCookies: false,
-  },
-  system: {
-    loggerOptions: {
-      loggerCallback(loglevel, message, containsPii) {
-        console.log(message);
-      },
-      piiLoggingEnabled: false,
-      logLevel: msal.LogLevel.Verbose,
-    },
-  },
-};
-
-//Create Authentication Client
-const msalClient = new msal.ConfidentialClientApplication(clientConfig);
 
 //Authentication Params
 const authParams = {
@@ -41,20 +15,20 @@ const authParams = {
 };
 
 /* ************************ MSAL HANDLERS ************************ */
-const getAuthURL = async () => {
+const getAuthURL = async (client) => {
   //init Response
   const myResponse = {};
   try {
     //Get Auth URL
-    const authURL = await msalClient.getAuthCodeUrl(authParams);
-    console.log("Getting AUTH URL", authURL);
+    const authURL = await client.getAuthCodeUrl(authParams);
+    //console.log("Getting AUTH URL", authURL);
 
     //Confirm got URL
     if (typeof authURL === "string") {
       myResponse.status = 200;
       myResponse.error = false;
       myResponse.message = "Got Authentication URL";
-      myResponse.redirectURL = authURL;
+      myResponse.data = authURL;
     } else {
       myResponse.status = 500;
       myResponse.error = true;
@@ -71,18 +45,18 @@ const getAuthURL = async () => {
   }
 };
 
-const getAuthToken = async (code) => {
+const getAuthToken = async (code, client) => {
   //init Response
   let myResponse = {};
-  let userID;
+  let userID, userAccnt;
   try {
     //Get Auth Token from Code
-    const authToken = await msalClient.acquireTokenByCode({ code, ...authParams });
-    console.log("Getting TOKEN", authToken);
+    const authToken = await client.acquireTokenByCode({ code, ...authParams });
+    //console.log("Getting TOKEN", authToken);
     userID = authToken.account.homeAccountId;
-
+    userAccnt = authToken.account;
     if (userID) {
-      const user = await graph.getUserDetails(msalClient, userID);
+      const user = await graph.getUserDetails(client, userID, userAccnt);
       if (user) {
         myResponse.status = 200;
         myResponse.error = false;
@@ -118,11 +92,11 @@ const getAuthToken = async (code) => {
     myResponse.message = error.message;
     myResponse.debug = error;
   } finally {
-    return myResponse;
+    return { response: myResponse, userID, userAccnt };
   }
 };
 
-const signOut = async (userID) => {
+const signOut = async (userID, client) => {
   //init Response
   const cacheResponse = initialResponse;
   let myResponse = initialResponse;
@@ -130,19 +104,19 @@ const signOut = async (userID) => {
     //User to sign out?
     if (userID) {
       //Remove from DB
-      const main = await readDBdata("main", { filter: { _id: userID } });
-      console.log(main);
+      //const main = await readDBdata("main", { filter: { _id: userID } });
+      //console.log(main);
       myResponse = await deleteDBdata("main", { _id: userID });
 
       //Find users account in list
-      const accounts = await msalClient.getTokenCache().getAllAccounts();
-      console.log("accounts", accounts);
+      const accounts = await client.getTokenCache().getAllAccounts();
+      //console.log("accounts", accounts);
       const userAccnt = accounts.find((accnt) => accnt.homeAccountId === userID);
 
       //Found user?
       if (userAccnt) {
         //Yes, remove
-        const removed = await msalClient.getTokenCache().removeAccount(userAccnt);
+        const removed = await client.getTokenCache().removeAccount(userAccnt);
         cacheResponse.message = `User ${userID} signed out.`;
         cacheResponse.data = removed;
       } else {
