@@ -2,20 +2,20 @@ import { useContext, useEffect } from "react";
 import { MyContext } from "../context/Context";
 import Dashboard from "./Dashboard";
 import LandingPage from "./LandingPage";
-import { ACTIONS } from "./Shared/constants";
 import styled from "styled-components";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const Page = () => {
   const {
-    state: { currUser },
+    state: { status, currUser },
     other: { loggedIn },
-    actions: { dispatchAction },
   } = useContext(MyContext);
 
+  const goTo = useNavigate();
   useEffect(() => {
-    if (loggedIn && currUser == null) dispatchAction(ACTIONS.LOGIN_INITIALIZED);
-    else if (loggedIn && currUser != null) dispatchAction(ACTIONS.LOGIN_COMPLETE);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    if (loggedIn && currUser == null) goTo("/auth/signin");
+    else if (loggedIn && currUser != null) console.log("Logged in.", currUser);
+  }, [status]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>

@@ -1,11 +1,11 @@
 "use strict";
-
 //NEW Router in Server
 const express = require("express");
 const AUTH_ROUTER = express();
 
 //Get Handlers
 const microsoft = require("./msal");
+const graph = require("./graph");
 
 AUTH_ROUTER
   /* ************************ AUTHENTICATION ENDPOINTS ************************ */
@@ -22,13 +22,14 @@ AUTH_ROUTER
     const authCode = req.query.code;
 
     // GET Response
-    const { response, userID, userAccnt } = await microsoft.getAuthToken(authCode, req.session.msalClient);
-    
-    req.session.userID = userID;
-    if (req.session.accounts) req.session.accounts[userID] = userAccnt;
-    else req.session.accounts = { userID: userAccnt };
-    //console.log("GOT AUTH TOKEN", response);
-
+    const response = await microsoft.getAuthToken(authCode, req.session.msalClient);
+    if (!response.error) {
+      const user = response.data.authToken.account;
+      req.session.userID = user.homeAccountId;
+      if (!req.session.accounts) req.session.accounts = {};
+      req.session.accounts[user.homeAccountId] = user;
+      console.log("SAVED SESSION Data", req.session);
+    }
     //Server Response
     res.status(response.status).json(response);
   })
@@ -45,11 +46,6 @@ AUTH_ROUTER
     //console.log("SIGNED OUT", response);
 
     //Server Response
-    res.status(response.status).json(response);
-  })
-  .get("/calendar", async (req, res) => {
-    const userID = req.session.userID;
-    const response = await microsoft.getMyCalendar(userID.req.session.msalClient);
     res.status(response.status).json(response);
   });
 

@@ -21,7 +21,7 @@ const getAuthURL = async (client) => {
   try {
     //Get Auth URL
     const authURL = await client.getAuthCodeUrl(authParams);
-    //console.log("Getting AUTH URL", authURL);
+    console.log("Getting AUTH URL", authURL);
 
     //Confirm got URL
     if (typeof authURL === "string") {
@@ -56,16 +56,16 @@ const getAuthToken = async (code, client) => {
     userID = authToken.account.homeAccountId;
     userAccnt = authToken.account;
     if (userID) {
-      const user = await graph.getUserDetails(client, userID, userAccnt);
-      if (user) {
+      const userDetails = await graph.getUserDetails(client, userID, userAccnt);
+      if (userDetails) {
         myResponse.status = 200;
         myResponse.error = false;
         myResponse.message = "Got Authentication Token and User.";
-        myResponse.data = { authToken, user };
+        myResponse.data = { authToken, ...userDetails };
         const crud = await createDBdata("main", {
           _id: userID,
           authToken,
-          user,
+          ...userDetails,
         });
 
         if (crud.error) {
@@ -78,7 +78,7 @@ const getAuthToken = async (code, client) => {
         myResponse.status = 404;
         myResponse.error = true;
         myResponse.message = "No data found in user response";
-        myResponse.debug = user;
+        myResponse.debug = userDetails;
       }
     } else {
       myResponse.status = 404;
@@ -92,7 +92,7 @@ const getAuthToken = async (code, client) => {
     myResponse.message = error.message;
     myResponse.debug = error;
   } finally {
-    return { response: myResponse, userID, userAccnt };
+    return myResponse;
   }
 };
 
@@ -108,10 +108,11 @@ const signOut = async (userID, client) => {
       //console.log(main);
       myResponse = await deleteDBdata("main", { _id: userID });
 
-      //Find users account in list
-      const accounts = await client.getTokenCache().getAllAccounts();
+      //Get Token Cache or Timeout after 5s
+      const accounts = await Promise.race([client.getTokenCache().getAllAccounts(), new Promise((resolve, reject) => setTimeout(() => reject("getTokenCache() timed out."), 5000))]);
+
       //console.log("accounts", accounts);
-      const userAccnt = accounts.find((accnt) => accnt.homeAccountId === userID);
+      const userAccnt = accounts ? accounts.find((accnt) => accnt.homeAccountId === userID) : null;
 
       //Found user?
       if (userAccnt) {

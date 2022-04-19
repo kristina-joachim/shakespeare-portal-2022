@@ -6,6 +6,7 @@ const { useSearchParams, useNavigate } = require("react-router-dom");
 
 const Login_GetAuthURL = () => {
   const {
+    state: { authURL },
     actions: { dispatchAction },
   } = useContext(MyContext);
 
@@ -14,28 +15,12 @@ const Login_GetAuthURL = () => {
     console.log("Getting AUTH URL");
     //Login Initiated. Get authURL from server
     dispatchAction(ACTIONS.LOGIN_INITIALIZED);
-    //Server should automatically redirect to <ExternalRoute.js>
-  }, []);
-
-  return (
-    <>
-      <Loading />
-    </>
-  );
-};
-
-//Server redirected to AuthURL
-const Login_GoToMicrosoft = () => {
-  const {
-    state: { currUser },
-    actions: { dispatchAction },
-  } = useContext(MyContext);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    //while (!currUser.authURL) {}
-    dispatchAction(ACTIONS.LOGIN_PROCESSING);
-    window.location.replace(currUser.authURL);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    //Got authURL, redirect
+    if (authURL != null) window.location.replace(authURL);
+  }, [authURL]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>
@@ -46,17 +31,25 @@ const Login_GoToMicrosoft = () => {
 
 //User completed login externally, get results.
 const Login_ReturnFromMicrosoft = () => {
-  const { code } = useSearchParams();
+  let [searchParams, setSearchParams] = useSearchParams();
   const goTo = useNavigate();
   const {
+    state: { authToken },
     actions: { dispatchAction },
+    other: { setLoggedIn },
   } = useContext(MyContext);
 
   useEffect(() => {
-    dispatchAction(ACTIONS.LOGIN_VALIDATED, { code });
     //Got code from user login, getting token.
-    goTo("/");
+    dispatchAction(ACTIONS.LOGIN_VALIDATED, { code: searchParams.get("code") });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (authToken != null) {
+      setLoggedIn(authToken.account.homeAccountId);
+      goTo("/");
+    }
+  }, [authToken]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>
@@ -65,4 +58,35 @@ const Login_ReturnFromMicrosoft = () => {
   );
 };
 
-export { Login_GetAuthURL, Login_GoToMicrosoft, Login_ReturnFromMicrosoft };
+const Login_SignOut = () => {
+  const {
+    state: { status },
+    actions: { dispatchAction },
+    other: { setLoggedIn },
+  } = useContext(MyContext);
+
+  const goTo = useNavigate();
+
+  //User clicked sign out button. Clear state
+  useEffect(() => {
+    console.log("Signin Out");
+    //Logout initiated, clear session data
+    dispatchAction(ACTIONS.LOGIN_LOGOUT);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    //User logged out.
+    if (status === ACTIONS.LOGIN_LOGOUT) {
+      setLoggedIn(false);
+      goTo("/");
+    }
+  }, [status]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return (
+    <>
+      <Loading />
+    </>
+  );
+};
+
+export { Login_GetAuthURL, Login_ReturnFromMicrosoft, Login_SignOut };

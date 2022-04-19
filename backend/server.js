@@ -10,7 +10,7 @@ const session = require("express-session");
 const MongoStore = require("connect-mongo");
 const morgan = require("morgan");
 const authRouter = require("./authRouter");
-const calendarRouter = require("./calendarRouter");
+
 //MongoClient OPtions
 const mongoClient_options = {
   useNewUrlParser: true,
@@ -25,9 +25,8 @@ const clientConfig = {
     authority: MSAL_AUTHORITY,
   },
   cache: {
-    cacheLocation: "sessionStorage",
-    storeAuthStateInCookie: false,
-    secureCookies: false,
+    cacheLocation: "localStorage", // This configures where your cache will be stored
+    storeAuthStateInCookie: false, // Set this to "true" if you are having issues on IE11 or Edge
   },
   system: {
     loggerOptions: {
@@ -94,7 +93,6 @@ EXPRESS_SERVER.use(function (req, res, next) {
 });
 //Endpoints
 EXPRESS_SERVER.use("/auth/", authRouter);
-EXPRESS_SERVER.use("/cal/", calendarRouter);
 
 //CatchAll Endpoint
 EXPRESS_SERVER.get("*", (req, res) => {

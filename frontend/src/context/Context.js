@@ -6,34 +6,39 @@ const MyContext = createContext(null);
 
 const initialState = {
   status: "anonymous",
+  authToken: null,
+  authURL: null,
   currUser: null,
   calendars: null,
+  events: null,
 };
 
 const myReducer = (state, action) => {
-  const tempState = state;
-
+  console.log("Reducer > action", action);
+  let tempState = state;
+  console.log("tempState", tempState);
+  console.log("action.type", action.type);
   switch (action.type) {
     case ACTIONS.LOGIN_INITIALIZED:
       tempState.status = action.type;
-      tempState.login = {
-        authURL: action.data,
-      };
-      break;
-    case ACTIONS.LOGIN_PROCESSING:
-      tempState.status = action.type; //Redirecting to AuthURL
+      tempState.authURL = action.data;
       break;
     case ACTIONS.LOGIN_VALIDATED:
       tempState.status = action.type;
-      tempState.login.authToken = action.data.authToken;
+      tempState.authToken = action.data.authToken;
       tempState.currUser = action.data.user;
+      tempState.calendars = action.data.calendars;
+      tempState.events = action.data.events;
       break;
-    case ACTIONS.LOGIN_COMPLETE:
-      tempState.status = action.type;
+    case ACTIONS.LOGIN_LOGOUT:
+      console.info("REDUCER > Updating state to", { status: action.type, ...initialState });
+      return { status: action.type, ...initialState };
       break;
     default:
+      console.error("Unknown action.type", action.type);
       break;
   }
+  console.log("Leaving reducer", tempState);
   return { ...tempState };
 };
 
@@ -44,11 +49,13 @@ const MyProvider = ({ children }) => {
 
   //data = { id, fetchOptions}
   const dispatchAction = async (action, data = {}) => {
-    console.log(`%cDispatching ${action} with data:`, "color: purple", data);
+    //console.log(`%cDispatching ${action} with data:`, "color: purple", data);
     //does action have a URL for server requests?
+
     if (URLS[action]) {
       //get action endpoint
       let url = URLS[action];
+      //console.log(`%c${action} has url: ${url} of `, "color: purple", URLS);
 
       let urlParts = url.split("?");
       //If has search Params, add from data
@@ -76,10 +83,10 @@ const MyProvider = ({ children }) => {
 
       //fetchOPtions?
       let options = data.fetchOptions || {};
-      console.log("FETCH options", options);
+      //console.log("FETCH options", options);
 
       const serverData = await getServerData(url, options);
-      console.log(`Got data from ${url}`, serverData);
+      //console.log(`Got data from ${url}`, serverData);
 
       setServerResponse({
         type: action,
@@ -91,7 +98,7 @@ const MyProvider = ({ children }) => {
       if (serverData.error) {
         dispatch({ type: ACTIONS.error, data: serverData, attemptedAction: action });
       } else dispatch({ type: action, data: serverData.data, res: serverData });
-      //console.log("%cDISPATCH complete > server", "color: green", serverData);
+      console.log("%cDISPATCH complete > server", "color: green", serverData);
       return serverData;
     } else {
       //no server data needed? regular dispatch

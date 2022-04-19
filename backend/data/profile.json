@@ -1,0 +1,14 @@
+{
+  "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#users/$entity",
+  "businessPhones": [],
+  "displayName": "Kristina",
+  "givenName": "Kristina",
+  "jobTitle": null,
+  "mail": "kristina@ecoleshakespeare.com",
+  "mobilePhone": "5148023118",
+  "officeLocation": null,
+  "preferredLanguage": null,
+  "surname": "Joachim",
+  "userPrincipalName": "kristina@ecoleshakespeare.com",
+  "id": "cafe695e-4495-4e2c-8c14-f24d6ee65e54"
+}

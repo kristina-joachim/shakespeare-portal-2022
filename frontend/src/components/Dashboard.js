@@ -1,9 +1,10 @@
 import { useContext, useEffect } from "react";
+import styled from "styled-components";
 import { MyContext } from "../context/Context";
 
 const Dashboard = () => {
   const {
-    state: { currUser, calendars },
+    state: { currUser, calendars, events },
   } = useContext(MyContext);
 
   useEffect(() => {
@@ -12,7 +13,7 @@ const Dashboard = () => {
 
   return (
     <>
-      <h1>Welcome, {currUser.name}</h1>
+      <h1>Welcome, {currUser.displayName}</h1>
       <h3>{currUser.username}</h3>
       <br />
       <h2>Preferences</h2>
@@ -27,10 +28,20 @@ const Dashboard = () => {
       </p>
       <p>
         <strong>TimeZone: </strong>
-        {currUser.mailboxSettings.timezone}
+        {currUser.mailboxSettings.timeZone}
       </p>
-      {calendars && <div>{JSON.stringify(calendars)}</div>}
+      {calendars && <JsonDiv>{JSON.stringify(calendars)}</JsonDiv>}
+
+      {events && <JsonDiv>{JSON.stringify(events)}</JsonDiv>}
     </>
   );
 };
 export default Dashboard;
+
+const JsonDiv = styled.div`
+  max-height: 500px;
+  overflow-y: scroll;
+  border: 1px solid grey;
+  background-color: white;
+  font-family: monospace;
+`;

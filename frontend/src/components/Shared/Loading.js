@@ -1,10 +1,10 @@
 import styled from "styled-components";
 
-const Loading = () => {
+const Loading = ({ type = "full" }) => {
   return (
     <>
       <LoaderWrapper>
-        <Loader />
+        <Loader size={type} />
       </LoaderWrapper>
     </>
   );
@@ -22,11 +22,12 @@ const LoaderWrapper = styled.div`
 `;
 
 const Loader = styled.span`
-  border: 5px solid white;
-  border-top: 5px solid var(--purple-color);
+  border: ${(props) => (props.size === "inline" ? "2px" : "5px")} solid white;
+  border-top: ${(props) => (props.size === "inline" ? "2px" : "5px")} solid var(--purple-color);
   border-radius: 50%;
-  width: 100px;
-  height: 100px;
+  aspect-ratio: 1 / 1;
+  width: ${(props) => (props.size === "inline" ? "100%" : "100px")};
+  height: auto;
   animation: loading 2s linear infinite;
 
   @keyframes loading {

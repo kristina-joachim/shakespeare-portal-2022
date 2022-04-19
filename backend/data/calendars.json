@@ -1,0 +1,43 @@
+{
+  "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#users('cafe695e-4495-4e2c-8c14-f24d6ee65e54')/calendars",
+  "value": [
+    {
+      "id": "AAMkADgzMmI5NGJiLWMxNWEtNDcyZC1iOGQ0LTVhODQ1MmQ1NzE5OQBGAAAAAADgl6AeKG8zQK8ZTKRR-fiwBwAKy6jAHRCJSqS2n-NMHj8VAAAAAAEGAAAKy6jAHRCJSqS2n-NMHj8VAACPQENfAAA=",
+      "name": "Maria Pacheco",
+      "color": "auto",
+      "hexColor": "",
+      "isDefaultCalendar": false,
+      "changeKey": "CsuowB0QiUqktp/zTB4/FQAAjuMq9A==",
+      "canShare": false,
+      "canViewPrivateItems": false,
+      "canEdit": true,
+      "allowedOnlineMeetingProviders": ["teamsForBusiness"],
+      "defaultOnlineMeetingProvider": "teamsForBusiness",
+      "isTallyingResponses": true,
+      "isRemovable": true,
+      "owner": {
+        "name": "Maria Pacheco",
+        "address": "Maria@ecoleshakespeare.com"
+      }
+    },
+    {
+      "id": "AAMkADgzMmI5NGJiLWMxNWEtNDcyZC1iOGQ0LTVhODQ1MmQ1NzE5OQBGAAAAAADgl6AeKG8zQK8ZTKRR-fiwBwAKy6jAHRCJSqS2n-NMHj8VAAAAAAEGAAAKy6jAHRCJSqS2n-NMHj8VAAAAAFY1AAA=",
+      "name": "Calendar",
+      "color": "lightOrange",
+      "hexColor": "#e67e22",
+      "isDefaultCalendar": true,
+      "changeKey": "CsuowB0QiUqktp/zTB4/FQAAV6MNIg==",
+      "canShare": true,
+      "canViewPrivateItems": true,
+      "canEdit": true,
+      "allowedOnlineMeetingProviders": ["teamsForBusiness"],
+      "defaultOnlineMeetingProvider": "teamsForBusiness",
+      "isTallyingResponses": true,
+      "isRemovable": false,
+      "owner": {
+        "name": "Kristina",
+        "address": "kristina@ecoleshakespeare.com"
+      }
+    }
+  ]
+}
