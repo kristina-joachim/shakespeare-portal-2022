@@ -1,7 +1,7 @@
 "use strict";
 //ENV variables
 require("dotenv").config();
-const { MSAL_SCOPES, MSAL_REDIRECT_URI } = process.env;
+const { MSAL_SCOPES, MSAL_REDIRECT_URI, COOR_CAL_ID } = process.env;
 
 const graph = require("@microsoft/microsoft-graph-client");
 
@@ -52,9 +52,24 @@ const getUserDetails = async (msalClient, userID, userAccnt) => {
 
   const user = await client.api("/me").select("displayName,givenName,surname,id,mail,mailboxSettings,mobilePhone,preferredLanguage,preferredName,userPrincipalName, userType").get();
   const calendars = await client.api("/me/calendars").get();
-  const events = await client.api("/me//events?$select=subject,body,bodyPreview,organizer,attendees,start,end,location").get();
+  const events = await client.api("/me/events?$select=subject,body,bodyPreview,organizer,attendees,start,end,location").header("Prefer", 'outlook.timezone="Eastern Standard Time"').get();
 
   return { user, calendars, events };
+};
+
+const getSchoolCal = async (accessToken) => {
+  const client = graph.Client.init({
+    debugLogging: true,
+    authProvider: (done) => {
+      done(null, accessToken);
+    },
+  });
+
+  console.log("Got client", client);
+
+  const mainSchedule = await client.api(`/me/calendars/${COOR_CAL_ID}/events`).header("Prefer", 'outlook.timezone="Eastern Standard Time"').get();
+
+  return mainSchedule;
 };
 
 const getCalendarView = async (msalClient, userID, userAccnt) => {
@@ -65,4 +80,4 @@ const getCalendarView = async (msalClient, userID, userAccnt) => {
   return calendarView;
 };
 
-module.exports = { getAuthenticatedClient, getUserDetails, getCalendarView };
+module.exports = { getAuthenticatedClient, getUserDetails, getCalendarView, getSchoolCal };

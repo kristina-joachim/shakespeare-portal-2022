@@ -7,6 +7,7 @@
     "@microsoft/mgt-element": "^2.4.0",
     "@microsoft/mgt-msal2-provider": "^2.4.0",
     "@microsoft/mgt-react": "^2.4.0",
+    "moment": "^2.29.3",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "react-router-dom": "^6.3.0",

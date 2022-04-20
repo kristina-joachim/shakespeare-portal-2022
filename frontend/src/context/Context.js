@@ -16,8 +16,10 @@ const initialState = {
 const myReducer = (state, action) => {
   console.log("Reducer > action", action);
   let tempState = state;
+
   console.log("tempState", tempState);
   console.log("action.type", action.type);
+
   switch (action.type) {
     case ACTIONS.LOGIN_INITIALIZED:
       tempState.status = action.type;
@@ -29,10 +31,14 @@ const myReducer = (state, action) => {
       tempState.currUser = action.data.user;
       tempState.calendars = action.data.calendars;
       tempState.events = action.data.events;
+      tempState.mainSchedule = action.data.mainSchedule;
       break;
     case ACTIONS.LOGIN_LOGOUT:
-      console.info("REDUCER > Updating state to", { status: action.type, ...initialState });
-      return { status: action.type, ...initialState };
+      for (const x of Object.keys(tempState)) {
+        if (x === "status") tempState[x] = action.type;
+        else tempState[x] = null;
+      }
+      console.log("REDUCER > Updating state to", tempState);
       break;
     default:
       console.error("Unknown action.type", action.type);

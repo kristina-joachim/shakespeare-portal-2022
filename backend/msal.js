@@ -48,24 +48,27 @@ const getAuthURL = async (client) => {
 const getAuthToken = async (code, client) => {
   //init Response
   let myResponse = {};
-  let userID, userAccnt;
+  let userID, userAccnt, accessToken;
   try {
     //Get Auth Token from Code
     const authToken = await client.acquireTokenByCode({ code, ...authParams });
-    //console.log("Getting TOKEN", authToken);
+    accessToken = authToken.accessToken;
     userID = authToken.account.homeAccountId;
     userAccnt = authToken.account;
     if (userID) {
       const userDetails = await graph.getUserDetails(client, userID, userAccnt);
+      const mainSchedule = await graph.getSchoolCal(accessToken);
+      console.log("SCHEDULE", mainSchedule);
       if (userDetails) {
         myResponse.status = 200;
         myResponse.error = false;
         myResponse.message = "Got Authentication Token and User.";
-        myResponse.data = { authToken, ...userDetails };
+        myResponse.data = { authToken, ...userDetails, mainSchedule };
         const crud = await createDBdata("main", {
           _id: userID,
           authToken,
           ...userDetails,
+          mainSchedule,
         });
 
         if (crud.error) {

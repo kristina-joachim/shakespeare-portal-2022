@@ -1,15 +1,30 @@
 import { useContext, useEffect } from "react";
 import styled from "styled-components";
-import { MyContext } from "../context/Context";
+import { MyContext } from "../../context/Context";
+import Calendar from "../Calendar";
 
 const Dashboard = () => {
   const {
-    state: { currUser, calendars, events },
+    state: { authToken, currUser, mainSchedule },
   } = useContext(MyContext);
 
   useEffect(() => {
     //Got authToken and some user data.
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const testGraph = async () => {
+    fetch(
+      "https://graph.microsoft.com/v1.0/me/calendars/AAMkADgzMmI5NGJiLWMxNWEtNDcyZC1iOGQ0LTVhODQ1MmQ1NzE5OQBGAAAAAADgl6AeKG8zQK8ZTKRR-fiwBwAKy6jAHRCJSqS2n-NMHj8VAAAAAAEGAAAKy6jAHRCJSqS2n-NMHj8VAACPQENfAAA=/events",
+      {
+        headers: {
+          Prefer: 'outlook.timezone="Eastern Standard Time"',
+          Authorization: `Bearer ${authToken.accessToken}`,
+        },
+      }
+    )
+      .then((res) => res.json())
+      .then((data) => console.log("%cFETCHED~!", "color: red", data));
+  };
 
   return (
     <>
@@ -30,9 +45,8 @@ const Dashboard = () => {
         <strong>TimeZone: </strong>
         {currUser.mailboxSettings.timeZone}
       </p>
-      {calendars && <JsonDiv>{JSON.stringify(calendars)}</JsonDiv>}
-
-      {events && <JsonDiv>{JSON.stringify(events)}</JsonDiv>}
+      {mainSchedule && <Calendar />}
+      <button onClick={testGraph}>Get Angie's calendar</button>
     </>
   );
 };

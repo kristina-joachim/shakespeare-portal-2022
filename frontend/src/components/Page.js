@@ -1,6 +1,6 @@
 import { useContext, useEffect } from "react";
 import { MyContext } from "../context/Context";
-import Dashboard from "./Dashboard";
+import Dashboard from "./Dashboard/Dashboard";
 import LandingPage from "./LandingPage";
 import styled from "styled-components";
 import { useLocation, useNavigate } from "react-router-dom";
