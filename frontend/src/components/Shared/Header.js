@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { useContext, useEffect, useState } from "react";
+import { useContext } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { MyContext } from "../../context/Context";
 import { ACTIONS } from "./constants";
@@ -8,13 +8,8 @@ import Loading from "./Loading";
 const Header = () => {
   const {
     state: { currUser, status },
-    actions: { dispatchAction },
   } = useContext(MyContext);
   const myLoc = useLocation();
-  
-  const getCalendarView = () => {
-    dispatchAction(ACTIONS.GET_CALENDARS);
-  };
 
   switch (status) {
     case "anonymous":
@@ -48,6 +43,8 @@ const Header = () => {
           <GoToBtn to="auth/signout">Sign Out?</GoToBtn>
         </NavBar>
       );
+    default:
+      return;
   }
 };
 

@@ -37,7 +37,7 @@ const Redirect = ({ type }) => {
         console.log("Current URL", myLoc);
         break;
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (apiRes != null) {
@@ -95,7 +95,7 @@ const Redirect = ({ type }) => {
       delete apiRes["/cal/all"];
       if (calendars) setCalendars(calendars.data);
     }
-  }, [apiRes]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [apiRes]);
 };
 
 export default Redirect;

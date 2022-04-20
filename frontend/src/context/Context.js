@@ -40,6 +40,12 @@ const myReducer = (state, action) => {
       }
       console.log("REDUCER > Updating state to", tempState);
       break;
+    case ACTIONS.GET_MAILBOX:
+      tempState.mailbox = action.res;
+      break;
+    case ACTIONS.GET_EVENT_DETAILS:
+      tempState.selectedClass = action.res;
+      break;
     default:
       console.error("Unknown action.type", action.type);
       break;
@@ -62,8 +68,9 @@ const MyProvider = ({ children }) => {
       //get action endpoint
       let url = URLS[action];
       //console.log(`%c${action} has url: ${url} of `, "color: purple", URLS);
-
-      let urlParts = url.split("?");
+      let urlParts;
+      if (url.includes("https://") || url.includes("https://")) urlParts = url.replace(/(http)(s)?:\/\//g, "").split("?");
+      else urlParts = url.split("?");
       //If has search Params, add from data
       if (urlParts.length > 1) {
         let searchParams = urlParts[1]; // param=&param=
@@ -115,7 +122,8 @@ const MyProvider = ({ children }) => {
   };
 
   const getServerData = async (url, options) => {
-    return await fetch(url, options)
+    //Get first batch of data
+    let results = await fetch(url, options)
       .then((res) => res.json())
       .then((data) => data)
       .catch((err) => {
@@ -123,6 +131,38 @@ const MyProvider = ({ children }) => {
         return { status: "error", err };
       })
       .finally((result) => result);
+
+    //Paginated API data?
+    if (Object.keys(results).includes("@odata.context")) {
+      const data = [];
+      let total = 0;
+      let cnt = 1;
+
+      //add Data to array
+      if (results.value && results["@odata.nextLink"]) {
+        data.push(...results.value);
+        total = results["@odata.count"];
+        console.log(`Fetch #${cnt} - Got ${data.length} items. ${data.length}/${total}........${(data.length / total) * 100}%`);
+
+        // More data? Fetch again
+        while (results["@odata.nextLink"]) {
+          results = await fetch(results["@odata.nextLink"], options)
+            .then((res) => res.json())
+            .then((data) => data)
+            .catch((err) => {
+              console.log("%cFETCH ERROR", "color: red", err);
+              return { status: "error", err };
+            })
+            .finally((result) => result);
+          data.push(...results.value);
+          cnt++;
+          console.log(`Fetch #${cnt} - Got ${results.value.length} items. ${data.length}/${total}........${(data.length / total) * 100}%`);
+        }
+        //complete?
+        if (data.length !== total) console.log("%cwtf..", "color:red");
+        return data;
+      } else return results;
+    } else return results;
   };
 
   return (

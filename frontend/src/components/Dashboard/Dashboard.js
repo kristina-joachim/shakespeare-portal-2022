@@ -2,60 +2,76 @@ import { useContext, useEffect } from "react";
 import styled from "styled-components";
 import { MyContext } from "../../context/Context";
 import Calendar from "../Calendar";
+import LandingPage from "./LandingPage";
+import { ACTIONS } from "../Shared/constants";
+import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
   const {
-    state: { authToken, currUser, mainSchedule },
+    state: { status, authToken, currUser, mainSchedule, mailbox },
+    other: { loggedIn },
+    actions: { dispatchAction },
   } = useContext(MyContext);
 
   useEffect(() => {
-    //Got authToken and some user data.
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    if (mailbox != null) console.log("GOT MAILBOX :D");
+  }, [mailbox]);
 
-  const testGraph = async () => {
-    fetch(
-      "https://graph.microsoft.com/v1.0/me/calendars/AAMkADgzMmI5NGJiLWMxNWEtNDcyZC1iOGQ0LTVhODQ1MmQ1NzE5OQBGAAAAAADgl6AeKG8zQK8ZTKRR-fiwBwAKy6jAHRCJSqS2n-NMHj8VAAAAAAEGAAAKy6jAHRCJSqS2n-NMHj8VAACPQENfAAA=/events",
-      {
+  const goTo = useNavigate();
+  useEffect(() => {
+    if (loggedIn && currUser == null) goTo("/auth/signin");
+    else if (loggedIn && currUser != null) console.log("Logged in.", currUser);
+  }, [status]);
+
+  const testGraph = () => {
+    dispatchAction(ACTIONS.GET_MAILBOX, {
+      $count: true,
+      $top: 1000,
+      fetchOptions: {
         headers: {
           Prefer: 'outlook.timezone="Eastern Standard Time"',
           Authorization: `Bearer ${authToken.accessToken}`,
         },
-      }
-    )
-      .then((res) => res.json())
-      .then((data) => console.log("%cFETCHED~!", "color: red", data));
+      },
+    });
   };
 
   return (
     <>
-      <h1>Welcome, {currUser.displayName}</h1>
-      <h3>{currUser.username}</h3>
-      <br />
-      <h2>Preferences</h2>
-      <h3>Language:</h3>
-      <p>
-        {currUser.mailboxSettings.language.displayName} ({currUser.mailboxSettings.language.locale})
-      </p>
-      <h3>Date and Time:</h3>
-      <p>
-        <strong>Format: </strong>
-        {currUser.mailboxSettings.dateFormat} - {currUser.mailboxSettings.timeFormat}
-      </p>
-      <p>
-        <strong>TimeZone: </strong>
-        {currUser.mailboxSettings.timeZone}
-      </p>
-      {mainSchedule && <Calendar />}
-      <button onClick={testGraph}>Get Angie's calendar</button>
+      {currUser == null ? (
+        <LandingPage />
+      ) : (
+        <>
+          <h1>Welcome, {currUser.displayName}</h1>
+          <h3>{currUser.username}</h3>
+          <br />
+          <h2>Preferences</h2>
+          <h3>Language:</h3>
+          <p>
+            {currUser.mailboxSettings.language.displayName} ({currUser.mailboxSettings.language.locale})
+          </p>
+          <h3>Date and Time:</h3>
+          <p>
+            <strong>Format: </strong>
+            {currUser.mailboxSettings.dateFormat} - {currUser.mailboxSettings.timeFormat}
+          </p>
+          <p>
+            <strong>TimeZone: </strong>
+            {currUser.mailboxSettings.timeZone}
+          </p>
+          {mainSchedule && <Calendar />}
+          <button onClick={testGraph}>Get Mailbox</button>
+        </>
+      )}
     </>
   );
 };
 export default Dashboard;
 
-const JsonDiv = styled.div`
-  max-height: 500px;
-  overflow-y: scroll;
-  border: 1px solid grey;
-  background-color: white;
-  font-family: monospace;
+const Content = styled.div`
+  flex: 1;
+  background-color: Lavender;
+  display: flex;
+  flex-flow: row nowrap;
+  padding: 20px;
 `;

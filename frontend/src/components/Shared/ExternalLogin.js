@@ -15,12 +15,12 @@ const Login_GetAuthURL = () => {
     console.log("Getting AUTH URL");
     //Login Initiated. Get authURL from server
     dispatchAction(ACTIONS.LOGIN_INITIALIZED);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     //Got authURL, redirect
     if (authURL != null) window.location.replace(authURL);
-  }, [authURL]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [authURL]);
 
   return (
     <>
@@ -31,7 +31,7 @@ const Login_GetAuthURL = () => {
 
 //User completed login externally, get results.
 const Login_ReturnFromMicrosoft = () => {
-  let [searchParams, setSearchParams] = useSearchParams();
+  let [searchParams, setSearchParams] = useSearchParams(); //eslint-disable-line no-unused-vars
   const goTo = useNavigate();
   const {
     state: { authToken },
@@ -42,14 +42,14 @@ const Login_ReturnFromMicrosoft = () => {
   useEffect(() => {
     //Got code from user login, getting token.
     dispatchAction(ACTIONS.LOGIN_VALIDATED, { code: searchParams.get("code") });
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (authToken != null) {
       setLoggedIn(authToken.account.homeAccountId);
       goTo("/");
     }
-  }, [authToken]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [authToken]);
 
   return (
     <>
@@ -72,7 +72,7 @@ const Login_SignOut = () => {
     console.log("Signin Out");
     //Logout initiated, clear session data
     dispatchAction(ACTIONS.LOGIN_LOGOUT);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     //User logged out.
@@ -80,7 +80,7 @@ const Login_SignOut = () => {
       setLoggedIn(false);
       goTo("/");
     }
-  }, [status]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [status]);
 
   return (
     <>
