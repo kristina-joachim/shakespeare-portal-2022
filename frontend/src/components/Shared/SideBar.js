@@ -19,7 +19,7 @@ const SideBar = () => {
   return (
     <>
       <Content>
-        <Logo src="assets/Shakespeare Logo.png" />
+        <Logo src="./assets/Shakespeare_Logo.png" />
         <NavMenu>
           <NavItem>
             <FaHome className="icon" /> Home
@@ -34,7 +34,7 @@ export default SideBar;
 
 const Content = styled.div`
   width: 20%;
-  max-width: 300px;
+  max-width: 600px;
   background-color: White;
   display: flex;
   flex-flow: column nowrap;

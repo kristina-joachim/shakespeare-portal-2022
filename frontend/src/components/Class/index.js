@@ -17,7 +17,7 @@ const Class = () => {
 
   return (
     <>
-      <Content></Content>
+      <Content>{classID}</Content>
     </>
   );
 };

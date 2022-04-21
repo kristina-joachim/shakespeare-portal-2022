@@ -2,7 +2,6 @@ import { useContext, useEffect } from "react";
 import styled from "styled-components";
 import { MyContext } from "../../context/Context";
 import Calendar from "../Calendar";
-import LandingPage from "./LandingPage";
 import { ACTIONS } from "../Shared/constants";
 import { useNavigate } from "react-router-dom";
 
@@ -38,9 +37,7 @@ const Dashboard = () => {
 
   return (
     <>
-      {currUser == null ? (
-        <LandingPage />
-      ) : (
+      {currUser && (
         <>
           <h1>Welcome, {currUser.displayName}</h1>
           <h3>{currUser.username}</h3>
