@@ -29,8 +29,8 @@ const LandingPage = () => {
   };
 
   useEffect(() => {
-    if (status != ACTIONS.LOGIN_LOGOUT && myStatus === ACTIONS.LOGIN_VALIDATED && currUser == null) goTo("/auth/signin");
-    else if (status != ACTIONS.LOGIN_LOGOUT && myStatus !== "anonymous") goTo("/home");
+    if (status !== ACTIONS.LOGIN_LOGOUT && myStatus === ACTIONS.LOGIN_VALIDATED && currUser == null) goTo("/auth/signin");
+    else if (status !== ACTIONS.LOGIN_LOGOUT && myStatus !== "anonymous") goTo("/home");
   }, [status]);
 
   return (
@@ -47,14 +47,106 @@ const LandingPage = () => {
               <Divider className="x" />
               <Options>
                 <OptionBox>
+                  <OptionTitle>Coordinators</OptionTitle>
+                  <Option>
+                    <OptionSubtitle>"@ecoleshakespeare.com" addresses only.</OptionSubtitle>
+                    <LoginBtn onClick={msLogin}>Log In!</LoginBtn>
+                  </Option>
+                  <Divider className="x" />
+                  <OptionTitle>Students</OptionTitle>
+                  <Option>
+                    <ComingSoon>
+                      {studentForm ? (
+                        <>
+                          <OptionSubtitle>Login with your existing account</OptionSubtitle>
+                          <LoginForm>
+                            <InputLabel>
+                              Email:
+                              <UserInput />
+                            </InputLabel>
+                            <InputLabel>
+                              Password:
+                              <UserInput />
+                            </InputLabel>
+                            <LoginBtn type="submit">Log In!</LoginBtn>
+                          </LoginForm>
+                          <OptionSubtitle>
+                            Don't have an account yet?&nbsp;
+                            <LoginBtn className="register" onClick={toggleStudentForm}>
+                              Register Now!
+                            </LoginBtn>
+                          </OptionSubtitle>
+                        </>
+                      ) : (
+                        <>
+                          <OptionSubtitle>Register with the code provided by your company</OptionSubtitle>
+                          <LoginForm>
+                            <InputLabel>
+                              Company Code:
+                              <br />
+                              <UserInput />
+                            </InputLabel>
+                            <InputLabel>
+                              Company Email:
+                              <br />
+                              <UserInput />
+                            </InputLabel>
+                            <InputLabel>
+                              Full Name:
+                              <InputGroup>
+                                <UserInput name="givenName" placeholder="Given name(s)" required />
+                                <UserInput name="surName" placeholder="Last name(s)" required />
+                              </InputGroup>
+                            </InputLabel>
+                            <InputLabel>
+                              Teacher can address you as:
+                              <br />
+                              <UserInput name="name" required />
+                            </InputLabel>
+                            <InputLabel>
+                              Phone Number:
+                              <br />
+                              <UserInput name="phone" required />
+                            </InputLabel>
+                            <InputLabel>
+                              Username:
+                              <br />
+                              <UserInput name="username" required />
+                            </InputLabel>
+                            <InputLabel>
+                              Password:
+                              <br />
+                              <UserInput name="pwd" required />
+                            </InputLabel>
+                            <InputLabel>
+                              Confirm Password:
+                              <br />
+                              <UserInput name="pwd-confirm" required />
+                            </InputLabel>
+                            <LoginBtn id="register" type="submit">
+                              Register!
+                            </LoginBtn>
+                          </LoginForm>
+                          <OptionSubtitle>
+                            Already have an account?&nbsp;
+                            <LoginBtn className="register" onClick={toggleStudentForm}>
+                              Log In
+                            </LoginBtn>
+                          </OptionSubtitle>
+                        </>
+                      )}
+                    </ComingSoon>
+                  </Option>
+                </OptionBox>
+                <OptionBox>
                   <OptionTitle>Teachers</OptionTitle>
                   <Option>
                     <OptionSubtitle>Login with my "@ecoleshakespeare.com" address</OptionSubtitle>
                     <LoginBtn onClick={msLogin}>Log In!</LoginBtn>
                   </Option>
                   <OptionVS>OR</OptionVS>
-                  <ComingSoon>
-                    <Option>
+                  <Option>
+                    <ComingSoon>
                       <OptionSubtitle>Login with my personal email address</OptionSubtitle>
                       <LoginForm id="teacherPersonal">
                         <InputLabel>
@@ -67,105 +159,8 @@ const LandingPage = () => {
                         </InputLabel>
                         <LoginBtn type="submit">Log In!</LoginBtn>
                       </LoginForm>
-                    </Option>
-                  </ComingSoon>
-                </OptionBox>
-
-                <Divider className="x divider" />
-
-                <OptionBox>
-                  <OptionTitle>Coordinators</OptionTitle>
-                  <Option>
-                    <OptionSubtitle>"@ecoleshakespeare.com" addresses only.</OptionSubtitle>
-                    <LoginBtn onClick={msLogin}>Log In!</LoginBtn>
+                    </ComingSoon>
                   </Option>
-                </OptionBox>
-
-                <Divider className="x divider" />
-
-                <OptionBox>
-                  <OptionTitle>Students</OptionTitle>
-                  <ComingSoon>
-                    {studentForm ? (
-                      <Option>
-                        <OptionSubtitle>Login with your existing account</OptionSubtitle>
-                        <LoginForm>
-                          <InputLabel>
-                            Email:
-                            <UserInput />
-                          </InputLabel>
-                          <InputLabel>
-                            Password:
-                            <UserInput />
-                          </InputLabel>
-                          <LoginBtn type="submit">Log In!</LoginBtn>
-                        </LoginForm>
-                        <OptionSubtitle>
-                          Don't have an account yet?&nbsp;
-                          <LoginBtn className="register" onClick={toggleStudentForm}>
-                            Register Now!
-                          </LoginBtn>
-                        </OptionSubtitle>
-                      </Option>
-                    ) : (
-                      <Option>
-                        <OptionSubtitle>Register with the code provided by your company</OptionSubtitle>
-                        <LoginForm>
-                          <InputLabel>
-                            Company Code:
-                            <br />
-                            <UserInput />
-                          </InputLabel>
-                          <InputLabel>
-                            Company Email:
-                            <br />
-                            <UserInput />
-                          </InputLabel>
-                          <InputLabel>
-                            Full Name:
-                            <InputGroup>
-                              <UserInput name="givenName" placeholder="Given name(s)" required />
-                              <UserInput name="surName" placeholder="Last name(s)" required />
-                            </InputGroup>
-                          </InputLabel>
-                          <InputLabel>
-                            Teacher can address you as:
-                            <br />
-                            <UserInput name="name" required />
-                          </InputLabel>
-                          <InputLabel>
-                            Phone Number:
-                            <br />
-                            <UserInput name="phone" required />
-                          </InputLabel>
-                          <InputLabel>
-                            Username:
-                            <br />
-                            <UserInput name="username" required />
-                          </InputLabel>
-                          <InputLabel>
-                            Password:
-                            <br />
-                            <UserInput name="pwd" required />
-                          </InputLabel>
-                          <InputLabel>
-                            Confirm Password:
-                            <br />
-                            <UserInput name="pwd-confirm" required />
-                          </InputLabel>
-                          <LoginBtn id="register" type="submit">
-                            Register!
-                          </LoginBtn>
-                        </LoginForm>
-                        <OptionSubtitle>
-                          Already have an account?&nbsp;
-                          <LoginBtn className="register" onClick={toggleStudentForm}>
-                            Log In
-                          </LoginBtn>
-                        </OptionSubtitle>
-                      </Option>
-                    )}
-                  </ComingSoon>
                 </OptionBox>
               </Options>
             </ModalBox>
@@ -190,8 +185,10 @@ const Content = styled.div`
   flex: 1;
   position: relative; /* for Modal */
   display: flex;
-  width: 100%;
   height: 100%;
+  width: 100%;
+  max-width: 100%;
+  max-height: 100%;
 `;
 const Website = styled.iframe`
   flex: 1;
@@ -201,16 +198,13 @@ const Website = styled.iframe`
 `;
 
 const Modal = styled.div`
+  border: 2px solid red;
   position: absolute; /* to Content */
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  min-width: 100%;
+  max-height: 100%;
   text-align: center;
   display: flex;
   justify-content: center;
-  align-items: center;
-  padding: 50px;
 `;
 
 const ModalBack = styled.div`
@@ -226,26 +220,21 @@ const ModalBox = styled.div`
   z-index: 2;
   box-shadow: 0 4px 8px 0 rgba(255, 255, 255, 0.2), 0 6px 20px 0 rgba(255, 255, 255, 0.19);
   display: flex;
-  flex-flow: row wrap;
-  justify-content: center;
-  align-items: center;
+  flex-flow: column nowrap;
   padding: 20px;
   gap: 5px;
   border-radius: 15px;
-  overflow-y: auto;
-  height: calc(100vh - 100px);
-
-  & > * {
-    width: max(inherit, 100%);
-  }
+  flex: 1 1 auto;
+  margin: 50px;
+  min-width: 850px;
 `;
 
 const CloseBtn = styled.button`
   --circle: 30px;
-  padding: 0;
-  position: absolute; /* to ModalBox */
-  right: 5px;
-  top: 5px;
+  padding: 10px;
+  position: sticky; /* to ModalBox */
+  top: 0;
+  align-self: flex-end;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -257,8 +246,10 @@ const CloseBtn = styled.button`
   width: var(--circle);
 
   &:hover {
+    padding: 0;
     background-color: rgba(255, 0, 0, 0.2);
-    font-size: 24pt;
+    transform: scale(1.5);
+    aspect-ratio: 1/1;
     color: red;
     cursor: pointer;
   }
@@ -327,17 +318,15 @@ const Title = styled.h1``;
 const SubTitle = styled.h3``;
 
 const Options = styled.div`
-  align-self: stretch;
-  padding: 0;
-  margin: 0;
   display: flex;
-  flex-flow: row wrap;
-  justify-content: center;
+  flex-flow: column wrap;
+  height: calc(100% - 100px);
+  max-width: 100%;
+  min-width: 800px;
+  flex: 1 1 auto;
   align-items: center;
-  height: 100%;
-  width: 100%;
-  flex: 0 1 100%;
-
+  align-content: space-around;
+  gap: 10px;
   @media screen and (max-width: 950px) {
     .dividers {
       display: block;
@@ -347,12 +336,7 @@ const Options = styled.div`
 
 const OptionBox = styled.div`
   padding: 5px 0;
-  display: flex;
-  flex-flow: column nowrap;
-  width: 400px;
-
-  @media screen and (max-width: 950px) {
-  }
+  min-width: 400px;
 `;
 
 const OptionTitle = styled.h2`
@@ -394,32 +378,7 @@ const Option = styled.div`
   flex-flow: column nowrap;
   padding: 15px 5px;
   width: 100%;
-
-  &.coord {
-    margin: 15px 0 5px;
-    border-radius: 15px;
-    background: none;
-    display: flex;
-    flex-flow: column nowrap;
-    padding: 15px 5px;
-    width: 100%;
-    position: relative;
-
-    h2 {
-      margin: 5px 0;
-    }
-    :before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: -2%;
-      right: -2%;
-      width: 104%;
-      height: 1px;
-      margin-top: 5px;
-      background: linear-gradient(to right, transparent, var(--text-color) 20% 80%, transparent);
-    }
-  }
+  height: auto;
 `;
 
 const LoginBtn = styled.button`

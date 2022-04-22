@@ -98,7 +98,6 @@ const GlobalStyles = createGlobalStyle`
     height: 100%;
     min-width: 500px;
     min-height: 100%;
-    overflow: auto;
     font-family: var(--main-font);
     color: var(--text-color);
   }
