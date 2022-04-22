@@ -51,11 +51,16 @@ const Header = () => {
 export default Header;
 
 const NavBar = styled.div`
+  position: sticky;
+  top: 0;
   display: flex;
   align-items: center;
   flex-flow: row nowrap;
   flex: 0 0 50px;
   border-bottom: 1px solid var(--light-gray-color);
+  border-left: 1px solid var(--light-gray-color);
+  padding-left: 15px;
+  background: white;
 `;
 
 const GoToBtn = styled(Link)`

@@ -47,7 +47,7 @@ const Login_ReturnFromMicrosoft = () => {
   useEffect(() => {
     if (authToken != null) {
       setLoggedIn(authToken.account.homeAccountId);
-      goTo("/");
+      goTo("/home");
     }
   }, [authToken]);
 

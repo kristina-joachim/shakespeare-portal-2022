@@ -1,4 +1,4 @@
-export const BASE_URL = "https://graph.microsoft.com/v1.0/";
+export const BASE_URL = "https://graph.microsoft.com/v1.0";
 
 export const ACTIONS = {
   LOGIN_INITIALIZED: "LOGIN_INITIALIZED", //User clicks the log in button > fetch AuthURL > page is redirected externally to authURL
@@ -132,7 +132,12 @@ export const ENDPOINTS = {
       headers: { Prefer: 'outlook.timezone="Eastern Standard Time"' },
     },
   },
-  profile: {
-    url: "/me",
+  myAvatar: {
+    url: BASE_URL + "/me/photo",
+    options: {
+      headers: {
+        Authorization: "authToken",
+      },
+    },
   },
 };
