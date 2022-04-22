@@ -42,6 +42,11 @@ const Content = styled.div`
   }
   @media screen and (max-width: 600px) {
     align-items: center;
+
+    &::before {
+      text-align: center;
+      right: auto;
+    }
   }
 `;
 
@@ -52,17 +57,18 @@ const QuickLink = styled.a`
   justify-content: center;
   align-items: center;
 
+  &:hover {
+    color: var(--shakes-blue3);
+    .icon {
+      background-color: var(--shakes-blue1);
+    }
+  }
   .icon {
     font-size: 25pt;
     padding: 5px;
     border-radius: 50%;
     aspect-ratio: 1/1;
-    :hover {
-      color: var(--cPurple);
-      background-color: var(--cLightPurple);
-    }
   }
-
   p {
     font-size: smaller;
   }

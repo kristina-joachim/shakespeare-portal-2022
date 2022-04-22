@@ -1,6 +1,7 @@
-import usePersistedState from "../hooks/usePersistedState.hook";
+import usePersistedState, { clearStoredData } from "../hooks/usePersistedState.hook";
 import { ACTIONS, URLS } from "../components/Shared/constants";
-const { createContext, useState, useReducer } = require("react");
+import { generateURL } from "../components/Shared/utils";
+const { createContext, useState, useReducer, useEffect } = require("react");
 
 const MyContext = createContext(null);
 
@@ -46,6 +47,10 @@ const myReducer = (state, action) => {
     case ACTIONS.GET_EVENT_DETAILS:
       tempState.selectedClass = action.res;
       break;
+    case ACTIONS.ERROR:
+      tempState.status = action.type;
+      tempState.error = { attemptedAction: action.attemptedAction, ...action.data };
+      break;
     default:
       console.error("Unknown action.type", action.type);
       break;
@@ -57,7 +62,16 @@ const myReducer = (state, action) => {
 const MyProvider = ({ children }) => {
   const [state, dispatch] = useReducer(myReducer, initialState);
   const [serverResponse, setServerResponse] = useState(null);
-  const [loggedIn, setLoggedIn] = usePersistedState("local", "userID", false);
+  const [myStatus, setStatus] = usePersistedState("local", "status", "anonymous");
+
+  useEffect(() => {
+    if (!(state.status === "anonymous" && myStatus === ACTIONS.LOGIN_INITIALIZED)) {
+      if (!(state.status === "anonymous" && myStatus === ACTIONS.LOGIN_VALIDATED)) {
+        if (state.status === ACTIONS.LOGIN_LOGOUT) clearStoredData("local", "status");
+        else setStatus(state.status);
+      }
+    }
+  }, [state.status]);
 
   //data = { id, fetchOptions}
   const dispatchAction = async (action, data = {}) => {
@@ -68,31 +82,9 @@ const MyProvider = ({ children }) => {
       //get action endpoint
       let url = URLS[action];
       //console.log(`%c${action} has url: ${url} of `, "color: purple", URLS);
-      let urlParts;
-      if (url.includes("https://") || url.includes("https://")) urlParts = url.replace(/(http)(s)?:\/\//g, "").split("?");
-      else urlParts = url.split("?");
-      //If has search Params, add from data
-      if (urlParts.length > 1) {
-        let searchParams = urlParts[1]; // param=&param=
-        searchParams.split("&").forEach((searchParam) => {
-          url = url.replace(searchParam, searchParam + "=" + data[searchParam]);
-        });
-      }
 
-      //Path includes params?
-      let path = urlParts[0];
-      if (path.includes(":")) {
-        let pathParams = path.split("/").filter((urlPart) => {
-          return urlPart.includes(":");
-        }); //  auth  redirect  :team  :user >>>  :team  :user
-
-        pathParams.forEach((pathParam) => {
-          let param = pathParam.replace(":", "");
-          url = url.replace(pathParam, data[param]);
-        });
-      }
-
-      console.log("URL", url);
+      //add any params needed
+      url = generateURL(url, data);
 
       //fetchOPtions?
       let options = data.fetchOptions || {};
@@ -109,7 +101,7 @@ const MyProvider = ({ children }) => {
 
       //on error, dispatch error event
       if (serverData.error) {
-        dispatch({ type: ACTIONS.error, data: serverData, attemptedAction: action });
+        dispatch({ type: ACTIONS.ERROR, data: serverData, attemptedAction: action });
       } else dispatch({ type: action, data: serverData.data, res: serverData });
       console.log("%cDISPATCH complete > server", "color: green", serverData);
       return serverData;
@@ -123,46 +115,34 @@ const MyProvider = ({ children }) => {
 
   const getServerData = async (url, options) => {
     //Get first batch of data
-    let results = await fetch(url, options)
-      .then((res) => res.json())
-      .then((data) => data)
-      .catch((err) => {
-        console.log("%cFETCH ERROR", "color: red", err);
-        return { status: "error", err };
-      })
-      .finally((result) => result);
+    let results = await fetch(url, options);
+    let resJson = await results.json();
 
     //Paginated API data?
-    if (Object.keys(results).includes("@odata.context")) {
+    if (Object.keys(resJson).includes("@odata.context")) {
       const data = [];
       let total = 0;
       let cnt = 1;
 
       //add Data to array
-      if (results.value && results["@odata.nextLink"]) {
-        data.push(...results.value);
-        total = results["@odata.count"];
+      if (resJson.value && resJson["@odata.nextLink"]) {
+        data.push(...resJson.value);
+        total = resJson["@odata.count"];
         console.log(`Fetch #${cnt} - Got ${data.length} items. ${data.length}/${total}........${(data.length / total) * 100}%`);
 
         // More data? Fetch again
-        while (results["@odata.nextLink"]) {
-          results = await fetch(results["@odata.nextLink"], options)
-            .then((res) => res.json())
-            .then((data) => data)
-            .catch((err) => {
-              console.log("%cFETCH ERROR", "color: red", err);
-              return { status: "error", err };
-            })
-            .finally((result) => result);
-          data.push(...results.value);
+        while (resJson["@odata.nextLink"]) {
+          results = await fetch(resJson["@odata.nextLink"], options);
+          resJson = await results.json();
+          data.push(...resJson.value);
           cnt++;
-          console.log(`Fetch #${cnt} - Got ${results.value.length} items. ${data.length}/${total}........${(data.length / total) * 100}%`);
+          console.log(`Fetch #${cnt} - Got ${resJson.value.length} items. ${data.length}/${total}........${(data.length / total) * 100}%`);
         }
         //complete?
         if (data.length !== total) console.log("%cwtf..", "color:red");
         return data;
-      } else return results;
-    } else return results;
+      } else return resJson;
+    } else return resJson;
   };
 
   return (
@@ -172,7 +152,7 @@ const MyProvider = ({ children }) => {
           state,
           actions: { getServerData, dispatchAction },
           server: { serverResponse, setServerResponse },
-          other: { loggedIn, setLoggedIn },
+          other: { myStatus },
         }}
       >
         {children}

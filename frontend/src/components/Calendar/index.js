@@ -1,16 +1,24 @@
 import styled from "styled-components";
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import { MyContext } from "../../context/Context";
 import Event from "./Event";
 
 const Calendar = () => {
   const {
-    state: { mainSchedule },
+    state: { events },
   } = useContext(MyContext);
+
+  useEffect(() => {
+    //"2019-11-08T19:00:00-08:00".  $top 1000
+  }, []);
+
+  const todaysEvents = events.value.filter((event) => {
+    return event.id > 0;
+  });
   return (
     <>
       <Content>
-        {mainSchedule.value.map((event) => {
+        {events.value.map((event) => {
           return <Event key={`event-${event.id}`} ev={event} />;
         })}
       </Content>

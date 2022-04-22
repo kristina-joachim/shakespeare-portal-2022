@@ -1,35 +1,26 @@
 import styled from "styled-components";
 import SideBar from "../Sidebar/SideBar";
-import { Outlet, useNavigate } from "react-router-dom";
-import Header from "./Header";
-import { useContext, useEffect } from "react";
+import { Outlet } from "react-router-dom";
+import { useContext } from "react";
 import { MyContext } from "../../context/Context";
+import Loading from "./Loading";
 
 const Layout = () => {
   const {
-    state: { status, currUser },
-    other: { loggedIn },
+    state: { currUser },
   } = useContext(MyContext);
-
-  const goTo = useNavigate();
-
-  useEffect(() => {
-    if (loggedIn && currUser == null) goTo("/auth/signin");
-    else if (loggedIn && currUser != null) console.log("Logged in.", currUser);
-  }, []);
 
   return (
     <>
-      {currUser && (
+      {currUser ? (
         <Wrapper>
           <SideBar />
           <Content>
-            <Header />
-            <Page>
-              <Outlet />
-            </Page>
+            <Outlet />
           </Content>
         </Wrapper>
+      ) : (
+        <Loading />
       )}
     </>
   );
@@ -39,7 +30,7 @@ export default Layout;
 
 const Wrapper = styled.div`
   flex: 1;
-  background-color: Lavender;
+  background-color: var(--shakes-grey);
   display: flex;
   flex-flow: row nowrap;
 `;
@@ -49,12 +40,4 @@ const Content = styled.div`
   width: 70%;
   display: flex;
   flex-flow: column nowrap;
-`;
-
-const Page = styled.div`
-  flex: 1;
-  background-color: Lavender;
-  display: flex;
-  flex-flow: column nowrap;
-  padding: 20px;
 `;

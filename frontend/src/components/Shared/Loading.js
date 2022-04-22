@@ -23,7 +23,7 @@ const LoaderWrapper = styled.div`
 
 const Loader = styled.span`
   border: ${(props) => (props.size === "inline" ? "2px" : "5px")} solid white;
-  border-top: ${(props) => (props.size === "inline" ? "2px" : "5px")} solid var(--purple-color);
+  border-top: ${(props) => (props.size === "inline" ? "2px" : "5px")} solid var(--shakes-blue3);
   border-radius: 50%;
   aspect-ratio: 1 / 1;
   width: ${(props) => (props.size === "inline" ? "100%" : "100px")};

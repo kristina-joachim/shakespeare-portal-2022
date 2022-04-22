@@ -10,7 +10,8 @@ const SideBar = () => {
     <>
       <Content>
         <Section>
-          <Logo src="./assets/Shakespeare_Logo.png" />
+          <Logo className="logo" src="./assets/Shakespeare_Logo.png" />
+          <Logo className="icon" src="./assets/Shakespeare_Icon.png" />
           <UserInfo />
           <NavBar />
         </Section>
@@ -60,6 +61,17 @@ const Section = styled.div`
 const Logo = styled.img`
   padding: 0 5px;
   object-fit: contain;
+
+  &.icon {
+    display: none;
+  }
+
+  @media screen and (max-width: 600px) {
+    display: none;
+    &.icon {
+      display: block;
+    }
+  }
 `;
 
 const LogOutBtn = styled(NavLink)`
@@ -80,8 +92,7 @@ const LogOutBtn = styled(NavLink)`
   }
 
   &:hover {
-    color: var(--cPurple);
-    background-color: var(--cLightPurple);
+    background-color: var(--shakes-blue1);
   }
 
   @media screen and (max-width: 600px) {
@@ -89,6 +100,8 @@ const LogOutBtn = styled(NavLink)`
     aspect-ratio: 1/1;
     .icon {
       font-size: 75px;
+      padding: 0;
+      margin: 0;
     }
   }
 `;

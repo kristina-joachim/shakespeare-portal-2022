@@ -10,6 +10,7 @@ const session = require("express-session");
 const MongoStore = require("connect-mongo");
 const morgan = require("morgan");
 const authRouter = require("./authRouter");
+const mongoRouter = require("./mongoRouter");
 
 //MongoClient OPtions
 const mongoClient_options = {
@@ -93,6 +94,7 @@ EXPRESS_SERVER.use(function (req, res, next) {
 });
 //Endpoints
 EXPRESS_SERVER.use("/auth/", authRouter);
+EXPRESS_SERVER.use("/crud/", mongoRouter);
 
 //CatchAll Endpoint
 EXPRESS_SERVER.get("*", (req, res) => {

@@ -75,14 +75,26 @@ const Avatar = styled.img`
   display: flex;
   justify-content: center;
   align-items: center;
+
+  @media screen and (max-width: 600px) {
+    font-size: 12pt;
+    width: 60px;
+    box-shadow: 0 0 4px 1px ${(props) => props.myColors.back};
+  }
 `;
 
 const Greeting = styled.h3`
   margin: 10px 0 5px;
+  @media screen and (max-width: 600px) {
+    display: none;
+  }
 `;
 
 const Email = styled.h6`
   margin: 0 0 30px;
-
   color: var(--main-color);
+
+  @media screen and (max-width: 600px) {
+    display: none;
+  }
 `;

@@ -15,6 +15,10 @@ const GlobalStyles = createGlobalStyle`
     --cLightGrey: #e8e9f0;
     --cGrey: #4e515a;
     --nav-back: white;
+    --shakes-blue1: #ace1fa;
+    --shakes-blue2: #7bd3f7;
+    --shakes-blue3: #00aeef;
+    --shakes-grey: #d7dee0;
   }
 
   /*

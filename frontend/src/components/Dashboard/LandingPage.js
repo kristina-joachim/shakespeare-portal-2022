@@ -8,10 +8,10 @@ import { ACTIONS } from "../Shared/constants";
 
 const LandingPage = () => {
   const [showModal, setShowModal] = useState(true);
-  const [studentForm, setStudentForm] = useState(false);
+  const [studentForm, setStudentForm] = useState(true);
   const {
     state: { currUser, status },
-    other: { loggedIn },
+    other: { myStatus },
   } = useContext(MyContext);
 
   const goTo = useNavigate();
@@ -29,8 +29,8 @@ const LandingPage = () => {
   };
 
   useEffect(() => {
-    if (loggedIn && currUser == null) goTo("/auth/signin");
-    else if (status === ACTIONS.LOGIN_VALIDATED) goTo("/home");
+    if (status != ACTIONS.LOGIN_LOGOUT && myStatus === ACTIONS.LOGIN_VALIDATED && currUser == null) goTo("/auth/signin");
+    else if (status != ACTIONS.LOGIN_LOGOUT && myStatus !== "anonymous") goTo("/home");
   }, [status]);
 
   return (
@@ -69,14 +69,20 @@ const LandingPage = () => {
                       </LoginForm>
                     </Option>
                   </ComingSoon>
-                  <Option className="coord">
-                    <OptionTitle>Coordinators</OptionTitle>
-                    <Option>
-                      <OptionSubtitle>"@ecoleshakespeare.com" addresses only.</OptionSubtitle>
-                      <LoginBtn onClick={msLogin}>Log In!</LoginBtn>
-                    </Option>
+                </OptionBox>
+
+                <Divider className="x divider" />
+
+                <OptionBox>
+                  <OptionTitle>Coordinators</OptionTitle>
+                  <Option>
+                    <OptionSubtitle>"@ecoleshakespeare.com" addresses only.</OptionSubtitle>
+                    <LoginBtn onClick={msLogin}>Log In!</LoginBtn>
                   </Option>
                 </OptionBox>
+
+                <Divider className="x divider" />
+
                 <OptionBox>
                   <OptionTitle>Students</OptionTitle>
                   <ComingSoon>
@@ -189,6 +195,8 @@ const Content = styled.div`
 `;
 const Website = styled.iframe`
   flex: 1;
+  height: 100%;
+  width: 100%;
   border: none;
 `;
 
@@ -204,6 +212,7 @@ const Modal = styled.div`
   align-items: center;
   padding: 50px;
 `;
+
 const ModalBack = styled.div`
   position: absolute; /* to Content */
   background-color: black;
@@ -217,13 +226,20 @@ const ModalBox = styled.div`
   z-index: 2;
   box-shadow: 0 4px 8px 0 rgba(255, 255, 255, 0.2), 0 6px 20px 0 rgba(255, 255, 255, 0.19);
   display: flex;
-  flex-flow: column nowrap;
-  align-items: stretch;
+  flex-flow: row wrap;
+  justify-content: center;
+  align-items: center;
   padding: 20px;
   gap: 5px;
-  min-width: fit-content;
   border-radius: 15px;
+  overflow-y: auto;
+  height: calc(100vh - 100px);
+
+  & > * {
+    width: max(inherit, 100%);
+  }
 `;
+
 const CloseBtn = styled.button`
   --circle: 30px;
   padding: 0;
@@ -311,12 +327,21 @@ const Title = styled.h1``;
 const SubTitle = styled.h3``;
 
 const Options = styled.div`
+  align-self: stretch;
+  padding: 0;
+  margin: 0;
   display: flex;
+  flex-flow: row wrap;
   justify-content: center;
-  gap: 30px;
-  flex: 1;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+  flex: 0 1 100%;
+
   @media screen and (max-width: 950px) {
-    flex-direction: column;
+    .dividers {
+      display: block;
+    }
   }
 `;
 
@@ -324,13 +349,9 @@ const OptionBox = styled.div`
   padding: 5px 0;
   display: flex;
   flex-flow: column nowrap;
-  max-width: 50%;
-  height: fit-content;
   width: 400px;
 
   @media screen and (max-width: 950px) {
-    flex: 1;
-    max-width: 100%;
   }
 `;
 
@@ -485,6 +506,7 @@ const Divider = styled.div`
     height: 1px;
     margin-bottom: 10px;
   }
+
   &.x::before {
     content: "";
     position: absolute;
@@ -510,5 +532,9 @@ const Divider = styled.div`
     background-color: white;
     border-left: 1px solid rgb(48, 49, 51);
     border-right: 1px solid rgb(48, 49, 51);
+  }
+
+  &.divider {
+    display: none;
   }
 `;

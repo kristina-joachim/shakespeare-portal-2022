@@ -28,3 +28,30 @@ export const getRandomHexColor = async () => {
   };
   return palette;
 };
+
+export const generateURL = (url, data) => {
+  let urlParts;
+  if (url.includes("https://") || url.includes("https://")) urlParts = url.replace(/(http)(s)?:\/\//g, "").split("?");
+  else urlParts = url.split("?");
+  //If has search Params, add from data
+  if (urlParts.length > 1) {
+    let searchParams = urlParts[1]; // param=&param=
+    searchParams.split("&").forEach((searchParam) => {
+      url = url.replace(searchParam, searchParam + "=" + data[searchParam]);
+    });
+  }
+
+  //Path includes params?
+  let path = urlParts[0];
+  if (path.includes(":")) {
+    let pathParams = path.split("/").filter((urlPart) => {
+      return urlPart.includes(":");
+    }); //  auth  redirect  :team  :user >>>  :team  :user
+
+    pathParams.forEach((pathParam) => {
+      let param = pathParam.replace(":", "");
+      url = url.replace(pathParam, data[param]);
+    });
+  }
+  return url;
+};

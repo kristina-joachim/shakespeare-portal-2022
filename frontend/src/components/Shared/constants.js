@@ -6,6 +6,7 @@ export const ACTIONS = {
   LOGIN_LOGOUT: "LOGIN_LOGOUT",
   GET_MAILBOX: "GET_MAILBOX",
   GET_EVENT_DETAILS: "GET_EVENT_DETAILS",
+  ERROR: "ERROR",
 };
 
 export const URLS = {
@@ -14,6 +15,23 @@ export const URLS = {
   LOGIN_LOGOUT: "/auth/signout",
   GET_MAILBOX: BASE_URL + "me/messages?$count&$top",
   GET_EVENT_DETAILS: BASE_URL + "/me/events/:evID",
+};
+
+export const ENDPOINTS = {
+  timesheets: {
+    url: "/crud/timesheets?date",
+  },
+  myAvatar: {
+    url: BASE_URL + "/me/photo",
+    options: {
+      headers: {
+        Authorization: "authToken",
+      },
+    },
+  },
+  todaysEvents: {
+    url: BASE_URL + "/me/calendar/calendarView?startDateTime&endDateTime",
+  },
 };
 
 /*
@@ -29,7 +47,7 @@ export const URLS = {
   const blobUrl = url.createObjectURL(image.data);
   document.getElementById(imageElement).setAttribute("src", blobUrl);
 */
-export const initialUser = {
+const initialUser = {
   userID: null,
   userPrincipalName: null,
   names: {
@@ -62,7 +80,7 @@ export const initialUser = {
   to create a new online meeting: 
     post event object. {isOnlineMeeting: true, onlineMeetingProvider: "teamsForBusiness"}
 */
-export const initialEvents = {
+const initialEvents = {
   calendar: {
     id: null,
     name: null,
@@ -119,25 +137,4 @@ export const initialEvents = {
       },
     },
   ],
-};
-
-export const ENDPOINTS = {
-  calendar_list: {
-    url: "/me/calendars/",
-    options: {},
-  },
-  single_calendar: {
-    url: "/me/calendar/:id/events",
-    options: {
-      headers: { Prefer: 'outlook.timezone="Eastern Standard Time"' },
-    },
-  },
-  myAvatar: {
-    url: BASE_URL + "/me/photo",
-    options: {
-      headers: {
-        Authorization: "authToken",
-      },
-    },
-  },
 };

@@ -27,6 +27,7 @@ const NavBar = () => {
 export default NavBar;
 
 const NavItem = styled(NavLink)`
+  position: relative;
   align-self: stretch;
   display: flex;
   align-items: center;
@@ -41,12 +42,11 @@ const NavItem = styled(NavLink)`
   }
 
   &.active {
-    color: var(--cPurple);
+    color: var(--shakes-blue3);
   }
 
   &:hover {
-    color: var(--cPurple);
-    background-color: var(--cLightPurple);
+    color: var(--shakes-blue3);
   }
 
   @media screen and (max-width: 600px) {
@@ -58,9 +58,10 @@ const NavItem = styled(NavLink)`
       font-size: 35px;
       flex: 0 0 35px;
     }
+
     &.active {
-      color: var(--cPurple);
-      background-color: var(--cLightPurple);
+      color: var(--shakes-blue3);
+      background-color: var(--shakes-blue1);
     }
   }
 `;

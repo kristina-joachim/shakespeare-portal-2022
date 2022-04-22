@@ -1,34 +1,61 @@
+import { useContext, useEffect } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
-import GlobalStyles from "./Shared/GlobalStyles";
+import { MyContext } from "../context/Context";
+import { ACTIONS } from "./Shared/constants";
 import { Login_GetAuthURL, Login_ReturnFromMicrosoft, Login_SignOut } from "./Shared/ExternalLogin";
+import GlobalStyles from "./Shared/GlobalStyles";
 import Class from "./Class";
+import Classes from "./Class/Classes";
+
 import Dashboard from "./Dashboard/Dashboard";
 import Layout from "./Shared/Layout";
 import LandingPage from "./Dashboard/LandingPage";
-import { useContext, useEffect } from "react";
-import { MyContext } from "../context/Context";
+import Error from "./Shared/Error";
+import Timesheets from "./Timesheets/timesheets";
+import FullCalendar from "./Calendar/FullCalendar";
 
 const App = () => {
   const {
-    other: { loggedIn },
+    state: { status, currUser },
+    other: { myStatus },
   } = useContext(MyContext);
   const goTo = useNavigate();
 
   useEffect(() => {
-    console.log("Logged in ?");
-    if (!loggedIn) goTo("/");
-  }, []);
+    console.log(`STATUS context: ${status} - storage ${myStatus} - currUser ${currUser != null}`);
+    switch (status) {
+      case "anonymous":
+        myStatus === ACTIONS.LOGIN_INITIALIZED ? goTo("/home") : goTo("/");
+        break;
+      case ACTIONS.ERROR:
+        goTo("/error");
+        break;
+      case ACTIONS.LOGIN_LOGOUT:
+        goTo("/");
+        break;
+      case ACTIONS.LOGIN_INITIALIZED:
+      case ACTIONS.LOGIN_VALIDATED:
+      default:
+        goTo("/home");
+        break;
+    }
+  }, [status, myStatus]);
 
   return (
     <>
       <GlobalStyles />
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        <Route path="/error" element={<Error />} />
         <Route element={<Layout />}>
           <Route path="/home" element={<Dashboard />} />
+          <Route path="/calendar" element={<FullCalendar />} />
+
           <Route path="/classes/">
             <Route path=":classID" element={<Class />} />
+            <Route index element={<Classes />} />
           </Route>
+          <Route path="/timesheets" element={<Timesheets />} />
         </Route>
 
         {/* Login Process links */}
