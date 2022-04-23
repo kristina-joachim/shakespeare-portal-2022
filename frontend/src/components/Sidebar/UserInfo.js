@@ -28,7 +28,7 @@ const UserInfo = () => {
 
     const getData = async (url, options) => {
       const image = await getServerData(url, options);
-      console.info(image);
+      //console.info(image);
 
       if (image.error) {
         let userName = currUser.givenName.concat(" ", currUser.surname);

@@ -57,13 +57,16 @@ const Dashboard = () => {
 export default Dashboard;
 
 const Content = styled.div`
-  flex: 1;
-  background: linear-gradient(to right, lavender -10%, #ffffff 90%);
+  background: linear-gradient(to right, var(--shakes-blue1) -50%, #ffffff 110%);
   display: flex;
   flex-flow: column wrap;
   justify-content: flex-start;
   align-items: flex-start;
   padding: 20px;
+  overflow-y: auto;
+  max-height: calc(100vh - 50px);
+  height: calc(100% - 50px);
+  border-radius: 0 0 15px 15px;
 `;
 
 const FloatBox = styled.div`

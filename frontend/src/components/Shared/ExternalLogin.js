@@ -36,7 +36,6 @@ const Login_ReturnFromMicrosoft = () => {
   const {
     state: { authToken },
     actions: { dispatchAction },
-    other: { setLoggedIn },
   } = useContext(MyContext);
 
   useEffect(() => {
@@ -46,7 +45,6 @@ const Login_ReturnFromMicrosoft = () => {
 
   useEffect(() => {
     if (authToken != null) {
-      setLoggedIn(authToken.account.homeAccountId);
       goTo("/home");
     }
   }, [authToken]);
@@ -62,7 +60,6 @@ const Login_SignOut = () => {
   const {
     state: { status },
     actions: { dispatchAction },
-    other: { setLoggedIn },
   } = useContext(MyContext);
 
   const goTo = useNavigate();
@@ -77,7 +74,6 @@ const Login_SignOut = () => {
   useEffect(() => {
     //User logged out.
     if (status === ACTIONS.LOGIN_LOGOUT) {
-      setLoggedIn(false);
       goTo("/");
     }
   }, [status]);

@@ -23,7 +23,7 @@ const usePersistedState = (type, key, value) => {
 
   //Update value in Session storage on state change
   useEffect(() => {
-    console.debug(`Update storage status for ${key}`, storedData);
+    //console.debug(`Update storage status for ${key}`, storedData);
     type === "local" ? localStorage.setItem(key, JSON.stringify(storedData)) : sessionStorage.setItem(key, JSON.stringify(storedData));
   }, [storedData]); //eslint-disable-line react-hooks/exhaustive-deps
 

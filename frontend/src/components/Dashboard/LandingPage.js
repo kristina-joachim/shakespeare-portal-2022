@@ -198,7 +198,6 @@ const Website = styled.iframe`
 `;
 
 const Modal = styled.div`
-  border: 2px solid red;
   position: absolute; /* to Content */
   min-width: 100%;
   max-height: 100%;
@@ -327,6 +326,7 @@ const Options = styled.div`
   align-items: center;
   align-content: space-around;
   gap: 10px;
+
   @media screen and (max-width: 950px) {
     .dividers {
       display: block;

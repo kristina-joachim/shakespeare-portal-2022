@@ -13,12 +13,13 @@ const Header = ({ title }) => {
 export default Header;
 
 const TopBar = styled.div`
-  position: sticky;
-  top: 0;
   display: flex;
   align-items: center;
   flex-flow: row nowrap;
   flex: 0 0 50px;
   padding-left: 15px;
-  background: linear-gradient(to top, #b3b3ff -50%, #ffffff 100%);
+  background: linear-gradient(to top, var(--shakes-blue1), #ffffff 100%);
+  border-bottom: 2px solid var(--shakes-blue1);
+  border-radius: 15px 15px 0 0;
+  z-index: 2px;
 `;

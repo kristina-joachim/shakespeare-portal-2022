@@ -21,7 +21,6 @@ export const getRandomHexColor = async () => {
   const res = await fetch(`https://www.thecolorapi.com/id?hex=${color}`);
   const colorData = await res.json();
 
-  console.info(colorData);
   const palette = {
     back: colorData.hex.value,
     text: colorData.contrast.value,

@@ -33,6 +33,9 @@ const Wrapper = styled.div`
   background-color: var(--shakes-grey);
   display: flex;
   flex-flow: row nowrap;
+  gap: 5px;
+  padding: 5px;
+  max-height: 100vh;
 `;
 
 const Content = styled.div`
@@ -40,4 +43,5 @@ const Content = styled.div`
   width: 70%;
   display: flex;
   flex-flow: column nowrap;
+  border-radius: 15px;
 `;

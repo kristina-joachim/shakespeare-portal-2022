@@ -11,8 +11,9 @@ import Dashboard from "./Dashboard/Dashboard";
 import Layout from "./Shared/Layout";
 import LandingPage from "./Dashboard/LandingPage";
 import Error from "./Shared/Error";
-import Timesheets from "./Timesheets/timesheets";
+import Timesheets from "./Timesheets/Timesheets";
 import FullCalendar from "./Calendar/FullCalendar";
+import { clearStoredData } from "../hooks/usePersistedState.hook";
 
 const App = () => {
   const {
@@ -25,7 +26,11 @@ const App = () => {
     console.log(`STATUS context: ${status} - storage ${myStatus} - currUser ${currUser != null}`);
     switch (status) {
       case "anonymous":
-        myStatus === ACTIONS.LOGIN_INITIALIZED ? goTo("/home") : goTo("/");
+        if (myStatus === ACTIONS.LOGIN_INITIALIZED) {
+          setTimeout(() => {
+            if (myStatus === ACTIONS.LOGIN_INITIALIZED && status === "anonymous") clearStoredData("local", "status");
+          }, 5000);
+        } else goTo("/");
         break;
       case ACTIONS.ERROR:
         goTo("/error");

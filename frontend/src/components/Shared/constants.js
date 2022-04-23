@@ -18,8 +18,11 @@ export const URLS = {
 };
 
 export const ENDPOINTS = {
-  timesheets: {
+  tsByDate: {
     url: "/crud/timesheets?date",
+  },
+  tsById: {
+    url: "/crud/timesheets?id",
   },
   myAvatar: {
     url: BASE_URL + "/me/photo",

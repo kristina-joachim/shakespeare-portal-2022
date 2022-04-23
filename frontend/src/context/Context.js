@@ -75,23 +75,23 @@ const MyProvider = ({ children }) => {
 
   //data = { id, fetchOptions}
   const dispatchAction = async (action, data = {}) => {
-    //console.log(`%cDispatching ${action} with data:`, "color: purple", data);
+    console.log(`%cDispatching ${action} with data:`, "color: purple", data);
     //does action have a URL for server requests?
 
     if (URLS[action]) {
       //get action endpoint
       let url = URLS[action];
-      //console.log(`%c${action} has url: ${url} of `, "color: purple", URLS);
+      console.log(`%c${action} has url: ${url} of `, "color: purple", URLS);
 
       //add any params needed
-      url = generateURL(url, data);
+      let fullurl = generateURL(url, data);
 
       //fetchOPtions?
       let options = data.fetchOptions || {};
       //console.log("FETCH options", options);
 
-      const serverData = await getServerData(url, options);
-      //console.log(`Got data from ${url}`, serverData);
+      const serverData = await getServerData(fullurl, options);
+      console.log(`Got data from ${url}`, serverData);
 
       setServerResponse({
         type: action,
@@ -107,7 +107,8 @@ const MyProvider = ({ children }) => {
       return serverData;
     } else {
       //no server data needed? regular dispatch
-      dispatch({ type: action, data });
+      if (action === ACTIONS.ERROR) dispatch({ type: action, ...data });
+      else dispatch({ type: action, data });
       //console.log("%cDISPATCH complete > state", "color: green", state);
       return data;
     }
@@ -116,7 +117,9 @@ const MyProvider = ({ children }) => {
   const getServerData = async (url, options) => {
     //Get first batch of data
     let results = await fetch(url, options);
+    console.log("Got DATA!", results);
     let resJson = await results.json();
+    console.log("Parsing DATA!", resJson);
 
     //Paginated API data?
     if (Object.keys(resJson).includes("@odata.context")) {

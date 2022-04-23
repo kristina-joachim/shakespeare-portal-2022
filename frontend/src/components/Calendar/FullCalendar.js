@@ -4,11 +4,10 @@ import Header from "../Shared/Header";
 const FullCalendar = () => {
   return (
     <>
-      <ComingSoon>
-        <Content>
-          <Header title={"My Calendar"} />
-        </Content>
-      </ComingSoon>
+      <Header title={"My Calendar"} />
+      <Content>
+        <ComingSoon></ComingSoon>
+      </Content>
     </>
   );
 };
@@ -16,5 +15,8 @@ const FullCalendar = () => {
 export default FullCalendar;
 
 const Content = styled.div`
-  flex: 1;
+  background: linear-gradient(to right, var(--shakes-blue1) -50%, #ffffff 110%);
+  height: 100%;
+  width: 100%;
+  border-radius: 0 0 15px 15px;
 `;

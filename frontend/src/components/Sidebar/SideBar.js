@@ -41,6 +41,7 @@ const Content = styled.div`
   flex-flow: column nowrap;
   align-items: center;
   padding: 15px 5px;
+  border-radius: 15px;
 
   @media screen and (max-width: 600px) {
     padding: 5px;

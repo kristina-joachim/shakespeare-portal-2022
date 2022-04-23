@@ -1,0 +1,60 @@
+[
+  {
+    "_id": "kristina_joachim",
+    "displayName": "Kristina",
+    "givenName": "Kristina",
+    "surname": "Joachim",
+    "emails": {
+      "work": "kristina@ecoleshakespeare.com",
+      "personal": "k.venice@hotmail.com"
+    },
+    "phones": {
+      "cell": "5148023118"
+    },
+    "type": "staff",
+    "status": "inactive"
+  },
+  {
+    "displayName": "Kristina",
+    "givenName": "Kristina",
+    "surname": "Joachim",
+    "emails": {
+      "work": "kristina@ecoleshakespeare.com",
+      "personal": "k.venice@hotmail.com"
+    },
+    "phones": {
+      "cell": "5148023118"
+    },
+    "type": "staff",
+    "status": "inactive"
+  },
+  {
+    "displayName": "Kristina",
+    "givenName": "Kristina",
+    "surname": "Joachim",
+    "emails": {
+      "work": "kristina@ecoleshakespeare.com",
+      "personal": "k.venice@hotmail.com"
+    },
+    "phones": {
+      "cell": "5148023118"
+    },
+    "type": "staff",
+    "status": "inactive"
+  },
+  {
+    "displayName": "Susan P",
+    "givenName": "Susan",
+    "surname": "Pappas",
+    "legalName": "Susan Pappastokanas",
+    "emails": {
+      "work": "kristina@ecoleshakespeare.com",
+      "personal": "k.venice@hotmail.com"
+    },
+    "phones": {
+      "cell": "5148023118"
+    },
+    "type": "staff",
+    "status": "inactive"
+  }
+]
