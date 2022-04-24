@@ -32,6 +32,9 @@ const Timesheets = () => {
     });
   }, []);
 
+  useEffect(() => {
+    if (payPeriod) updateData();
+  }, [payPeriod]);
   const changePayPeriod = (ev) => {
     let tempState = payPeriod;
     let operation = ev.target.name;
@@ -55,6 +58,69 @@ const Timesheets = () => {
         setPayPeriod({ ...tempState, ...results.data });
       }
     });
+  };
+
+  const updateData = (ev) => {
+    if (ev) {
+      let changedInput = ev.target;
+      //console.log("apr23", changedInput);
+      switch (changedInput.type) {
+        case "datetime-local":
+          updateDuration(changedInput.id);
+      }
+    }
+
+    let totalDays = document.getElementById("totalDays");
+    //update Days
+    let days = totalDays.htmlFor.value.split(" ");
+    totalDays.value = days.reduce((dateCnt, dateInput) => {
+      let thatDate = document.getElementById(dateInput);
+      if (moment(thatDate.value).isValid()) dateCnt.add(moment(thatDate.value).format("ll"));
+      return dateCnt;
+    }, new Set()).size;
+
+    let totalHours = document.getElementById("totalHours");
+    //update hours
+    let hours = totalHours.htmlFor.value.split(" ");
+    let isAccurate = true;
+    let msg = hours
+      .reduce((hourCnt, duration) => {
+        let durationElmt = document.getElementById(duration);
+        if (isNaN(+durationElmt.value)) isAccurate = false;
+        else hourCnt += +durationElmt.value;
+        return hourCnt;
+      }, 0)
+      .toFixed(2);
+
+    totalHours.value = msg.concat(isAccurate ? " hours." : "hours.**");
+
+    let totalRows = document.getElementById("totalRows");
+    totalRows.innerHTML = Array.from(document.getElementById("reports").children).filter((report) => {
+      return !report.classList.contains("removed");
+    }).length;
+
+    let types = document.getElementById("types");
+    let summary = document.getElementById("summary");
+  };
+
+  const updateDuration = (affectedID) => {
+    console.log("UPDATE DURACTIONS", affectedID);
+    let affectedRow = affectedID.split("-")[1];
+
+    let durationInput = document.getElementById(`duration-${affectedRow}`);
+    let startInput = document.getElementById(`start-${affectedRow}`);
+    let endInput = document.getElementById(`end-${affectedRow}`);
+
+    let startTime = moment(startInput.value);
+    let endTime = moment(endInput.value);
+
+    if (startTime.isValid() && endTime.isValid()) {
+      let duration = endTime.diff(startTime, "hours", true);
+      durationInput.value = duration.toFixed(2);
+    } else {
+      durationInput.value = "-";
+    }
+    return;
   };
 
   return (
@@ -91,29 +157,108 @@ const Timesheets = () => {
                 <InfoValue>{moment(payPeriod.end).format("ddd, ll")}</InfoValue>
               </InfoItem>
             </InfoNav>
-            <Attendance>
-              <thead>
-                <tr>
-                  <th>Group Name</th>
-                  <th>Date </th>
-                  <th>Duration</th>
-                  <th>Participant</th>
-                  <th>Duration</th>
-                  <th>Attendance</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>Bonduelle Teams 3</td>
-                  <td>{moment().format("lll")} - 10:00 AM to 11:30 AM</td>
-                  <td>1.5 hours</td>
-                  <td>Kristina Joachim</td>
-                  <td>
-                    <CheckBox key="kj-check" />
-                  </td>
-                </tr>
-              </tbody>
-            </Attendance>
+            <form name="timesheet" onLoad={updateData} onChange={updateData} onInput={updateData}>
+              <Attendance>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Description</th>
+                    <th>Start</th>
+                    <th>End</th>
+                    <th>Duration</th>
+                    <th>Type</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="reports">
+                  <tr>
+                    <td>1</td>
+                    <td>Walmart Evals - Abbie Berger</td>
+                    <td>
+                      <input name="start-1" id="start-1" type="datetime-local" />
+                    </td>
+                    <td>
+                      <input name="end-1" id="end-1" type="datetime-local" />
+                    </td>
+                    <td>
+                      <output id="duration-1" name="duration-1" htmlFor="start-1 end-1"></output>
+                    </td>
+                    <td>
+                      <select name="type-1" id="type-1">
+                        <option value="class">Class</option>
+                        <option value="cxl">Class (CXL)</option>
+                        <option value="eval">Evaluation</option>
+                        <option value="admin">Admin</option>
+                        <option value="travel">Travel</option>
+                      </select>
+                    </td>
+                    <td>
+                      <label>
+                        <input
+                          type="checkbox"
+                          name="checked-1"
+                          id="checked-1"
+                          onInput={(ev) => (ev.target.checked ? (document.querySelector("#status-1").value = "Confirmed! Thank you.") : (document.querySelector("#status-1").value = "Confirm"))}
+                        />
+                        <input disabled id="status-1" name="status-1" defaultValue="Confirm" />
+                      </label>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>2</td>
+                    <td>Walmart Evals - Lizeth Hebert</td>
+                    <td>
+                      <input name="start-2" id="start-2" type="datetime-local" />
+                    </td>
+                    <td>
+                      <input name="end-2" id="end-2" type="datetime-local" />
+                    </td>
+                    <td>
+                      <output id="duration-2" name="duration-2" htmlFor="start-2 end-2"></output>
+                    </td>
+                    <td>
+                      <select name="type-2" id="type-2">
+                        <option value="class">Class</option>
+                        <option value="cxl">Class (CXL)</option>
+                        <option value="eval">Evaluation</option>
+                        <option value="admin">Admin</option>
+                        <option value="travel">Travel</option>
+                      </select>
+                    </td>
+                    <td>
+                      <label>
+                        <input
+                          type="checkbox"
+                          name="checked-2"
+                          id="checked-2"
+                          onInput={(ev) => (ev.target.checked ? (document.querySelector("#status-2").value = "Confirmed! Thank you.") : (document.querySelector("#status-2").value = "Confirm"))}
+                        />
+                        <input disabled id="status-2" name="status-2" defaultValue="Confirm" />
+                      </label>
+                    </td>
+                  </tr>
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td colSpan={4}>
+                      Total: <span id="totalRows"></span> reports over <output id="totalDays" name="totalDays" htmlFor="start-1 start-2 end-1 end-2"></output> days.
+                    </td>
+                    <td>
+                      <output id="totalHours" name="totalHours" htmlFor="duration-1 duration-2"></output>
+                    </td>
+                    <td>
+                      <output id="types" name="types" htmlFor="type-1 type-2"></output>
+                    </td>
+                    <td>
+                      <output id="summary" name="summary" htmlFor="status-1 status-2 checked-1 checked-2"></output>
+                    </td>
+                  </tr>
+                </tfoot>
+              </Attendance>
+              <SubmitBtn type="submit" disabled>
+                Submit hours
+              </SubmitBtn>
+            </form>
           </>
         )}
       </Content>
@@ -203,11 +348,11 @@ const InfoValue = styled.h2`
 `;
 
 const Attendance = styled.table`
-  width: 100%;
-  height: 100%;
   border: 1px solid #ddd;
   border-collapse: collapse;
 `;
+
+const SubmitBtn = styled.button``;
 
 const TitleRow = styled.tr``;
 const ColTitle = styled.th``;

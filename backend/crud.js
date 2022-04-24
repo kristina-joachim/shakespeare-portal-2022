@@ -32,7 +32,7 @@ const createDBdata = async (collName, newData) => {
 
     //connect to db
     const myDB = client.db(MONGO_DB);
-    console.log("Connected");
+    //console.log("Connected");
 
     //Init results
     let results;
@@ -68,7 +68,7 @@ const createDBdata = async (collName, newData) => {
   } finally {
     //disconnect from client
     client.close();
-    console.log("Disconnected.");
+    //console.log("Disconnected.");
     return response;
   }
 };
@@ -118,7 +118,7 @@ const readDBdata = async (collName, filters = {}) => {
 
       //connect to db
       const myDB = client.db(MONGO_DB);
-      console.log("Connected.");
+      //console.log("Connected.");
 
       //GET DATA, use filter params, if they exist
       const results =
@@ -158,7 +158,7 @@ const readDBdata = async (collName, filters = {}) => {
     } finally {
       //disconnect
       client.close();
-      console.log("Disconnected.");
+      //console.log("Disconnected.");
       return response;
     }
   }
@@ -187,7 +187,7 @@ const deleteDBdata = async (collName, filter) => {
 
     //connect to db
     const myDB = client.db(MONGO_DB);
-    console.log("Connected.");
+    //console.log("Connected.");
 
     if (filter != null) {
       //Delete DATA, use filter params, if they exist
@@ -237,7 +237,7 @@ const deleteDBdata = async (collName, filter) => {
   } finally {
     //disconnect
     client.close();
-    console.log("Disconnected.");
+    //console.log("Disconnected.");
     return response;
   }
 };
@@ -278,7 +278,7 @@ const updateDBdata = async (collName, filter, newData) => {
 
       //connect to db
       const myDB = client.db(MONGO_DB);
-      console.log("Connected.");
+      //console.log("Connected.");
 
       const newValues = { $set: newData.newValue };
       const searchQuery = newData.query ? { ...filter, ...newData.query } : { ...filter };
@@ -332,7 +332,7 @@ const updateDBdata = async (collName, filter, newData) => {
     } finally {
       //disconnect
       client.close();
-      console.log("Disconnected.");
+      //console.log("Disconnected.");
       return response;
     }
   }

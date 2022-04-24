@@ -1,5 +1,5 @@
-import { useContext, useEffect } from "react";
-import { Routes, Route, useNavigate } from "react-router-dom";
+import { useContext, useEffect, useState } from "react";
+import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { MyContext } from "../context/Context";
 import { ACTIONS } from "./Shared/constants";
 import { Login_GetAuthURL, Login_ReturnFromMicrosoft, Login_SignOut } from "./Shared/ExternalLogin";
@@ -20,30 +20,39 @@ const App = () => {
     state: { status, currUser },
     other: { myStatus },
   } = useContext(MyContext);
+  const myLoc = useLocation();
   const goTo = useNavigate();
+  const [loginTimeout, setLoginTimeout] = useState(null);
 
+  //REDIRECT IF NECESSARY
   useEffect(() => {
-    console.log(`STATUS context: ${status} - storage ${myStatus} - currUser ${currUser != null}`);
-    switch (status) {
-      case "anonymous":
-        if (myStatus === ACTIONS.LOGIN_INITIALIZED) {
-          setTimeout(() => {
-            if (myStatus === ACTIONS.LOGIN_INITIALIZED && status === "anonymous") clearStoredData("local", "status");
-          }, 5000);
-        } else goTo("/");
-        break;
-      case ACTIONS.ERROR:
-        goTo("/error");
-        break;
-      case ACTIONS.LOGIN_LOGOUT:
-        goTo("/");
-        break;
-      case ACTIONS.LOGIN_INITIALIZED:
-      case ACTIONS.LOGIN_VALIDATED:
-      default:
-        goTo("/home");
-        break;
+    //console.log(`STATUS > @ ${myLoc.pathname} >>  context: ${status} - storage ${myStatus} - currUser ${currUser != null}`);
+
+    if (status === "anonymous") {
+      //Start 5s timeout to authenticate
+      switch (myStatus) {
+        case "anonynous":
+          goTo("/");
+          break;
+        case ACTIONS.LOGIN_INITIALIZED:
+          /*         setLoginTimeout(
+            setTimeout(() => {
+              //timeout. reset storage
+              if (myStatus === ACTIONS.LOGIN_INITIALIZED && status === "anonymous") clearStoredData("local", "status");
+            }, 10000)
+          ); */
+          break;
+        case ACTIONS.LOGIN_VALIDATED:
+          goTo("/auth/signin");
+        default:
+          //all good~ remove timeout
+          //if (loginTimeout != null) setLoginTimeout(null);
+          break;
+      }
     }
+    //error?
+    else if (status === ACTIONS.ERROR) goTo("/error");
+    else if (status === ACTIONS.LOGIN_INITIALIZED || status === ACTIONS.LOGIN_VALIDATED) goTo("/home");
   }, [status, myStatus]);
 
   return (

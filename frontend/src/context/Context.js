@@ -15,11 +15,11 @@ const initialState = {
 };
 
 const myReducer = (state, action) => {
-  console.log("Reducer > action", action);
+  //console.log("Reducer > action", action);
   let tempState = state;
 
-  console.log("tempState", tempState);
-  console.log("action.type", action.type);
+  console.log("REDUCER > state BEFORE", tempState);
+  console.log("REDUCER > action", action);
 
   switch (action.type) {
     case ACTIONS.LOGIN_INITIALIZED:
@@ -39,7 +39,6 @@ const myReducer = (state, action) => {
         if (x === "status") tempState[x] = action.type;
         else tempState[x] = null;
       }
-      console.log("REDUCER > Updating state to", tempState);
       break;
     case ACTIONS.GET_MAILBOX:
       tempState.mailbox = action.res;
@@ -52,10 +51,10 @@ const myReducer = (state, action) => {
       tempState.error = { attemptedAction: action.attemptedAction, ...action.data };
       break;
     default:
-      console.error("Unknown action.type", action.type);
+      console.error("REDUCER > Unknown action.type", action.type);
       break;
   }
-  console.log("Leaving reducer", tempState);
+  console.log("REDUCER > state AFTER", tempState);
   return { ...tempState };
 };
 
@@ -67,21 +66,20 @@ const MyProvider = ({ children }) => {
   useEffect(() => {
     if (!(state.status === "anonymous" && myStatus === ACTIONS.LOGIN_INITIALIZED)) {
       if (!(state.status === "anonymous" && myStatus === ACTIONS.LOGIN_VALIDATED)) {
-        if (state.status === ACTIONS.LOGIN_LOGOUT) clearStoredData("local", "status");
-        else setStatus(state.status);
+        setStatus(state.status);
       }
     }
   }, [state.status]);
 
   //data = { id, fetchOptions}
   const dispatchAction = async (action, data = {}) => {
-    console.log(`%cDispatching ${action} with data:`, "color: purple", data);
+    console.log(`%cDISPATCH > ${action} with data:`, "color: purple", data);
     //does action have a URL for server requests?
 
     if (URLS[action]) {
       //get action endpoint
       let url = URLS[action];
-      console.log(`%c${action} has url: ${url} of `, "color: purple", URLS);
+      console.log(`%cDISPATCH > ${action} has url: ${url} of `, "color: purple", URLS);
 
       //add any params needed
       let fullurl = generateURL(url, data);
@@ -91,7 +89,7 @@ const MyProvider = ({ children }) => {
       //console.log("FETCH options", options);
 
       const serverData = await getServerData(fullurl, options);
-      console.log(`Got data from ${url}`, serverData);
+      console.log(`DISPATCH > Got data from ${url}`, serverData);
 
       setServerResponse({
         type: action,
@@ -103,23 +101,24 @@ const MyProvider = ({ children }) => {
       if (serverData.error) {
         dispatch({ type: ACTIONS.ERROR, data: serverData, attemptedAction: action });
       } else dispatch({ type: action, data: serverData.data, res: serverData });
-      console.log("%cDISPATCH complete > server", "color: green", serverData);
+      console.log("%cDISPATCH +REDUCER complete > serverData + state", "color: green", { state, serverData });
       return serverData;
     } else {
       //no server data needed? regular dispatch
       if (action === ACTIONS.ERROR) dispatch({ type: action, ...data });
       else dispatch({ type: action, data });
-      //console.log("%cDISPATCH complete > state", "color: green", state);
+      console.log("%cDISPATCH +REDUCER complete > state", "color: green", state);
       return data;
     }
   };
 
   const getServerData = async (url, options) => {
+    console.log(`FETCHING > from ${url}, options:`, options);
     //Get first batch of data
     let results = await fetch(url, options);
-    console.log("Got DATA!", results);
+    console.log(`FETCHING > Got DATA!`, results);
     let resJson = await results.json();
-    console.log("Parsing DATA!", resJson);
+    console.log("FETCHING > Parsing DATA!", resJson);
 
     //Paginated API data?
     if (Object.keys(resJson).includes("@odata.context")) {
@@ -131,7 +130,7 @@ const MyProvider = ({ children }) => {
       if (resJson.value && resJson["@odata.nextLink"]) {
         data.push(...resJson.value);
         total = resJson["@odata.count"];
-        console.log(`Fetch #${cnt} - Got ${data.length} items. ${data.length}/${total}........${(data.length / total) * 100}%`);
+        console.log(`FETCHING > Fetch #${cnt} - Got ${data.length} items. ${data.length}/${total}........${(data.length / total) * 100}%`);
 
         // More data? Fetch again
         while (resJson["@odata.nextLink"]) {
@@ -139,10 +138,10 @@ const MyProvider = ({ children }) => {
           resJson = await results.json();
           data.push(...resJson.value);
           cnt++;
-          console.log(`Fetch #${cnt} - Got ${resJson.value.length} items. ${data.length}/${total}........${(data.length / total) * 100}%`);
+          console.log(`FETCHING > Fetch #${cnt} - Got ${resJson.value.length} items. ${data.length}/${total}........${(data.length / total) * 100}%`);
         }
         //complete?
-        if (data.length !== total) console.log("%cwtf..", "color:red");
+        if (data.length !== total) console.log("%cFETCHING > Multiple fetches gave wtf..", "color:red");
         return data;
       } else return resJson;
     } else return resJson;

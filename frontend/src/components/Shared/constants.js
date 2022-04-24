@@ -35,6 +35,9 @@ export const ENDPOINTS = {
   todaysEvents: {
     url: BASE_URL + "/me/calendar/calendarView?startDateTime&endDateTime",
   },
+  logout: {
+    url: "https://login.microsoftonline.com/common/oauth2/v2.0/logout?post_logout_redirect_uri",
+  },
 };
 
 /*

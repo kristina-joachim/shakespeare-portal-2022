@@ -1,7 +1,9 @@
 import { useContext, useEffect } from "react";
-import { ACTIONS } from "./constants";
+import { ACTIONS, ENDPOINTS } from "./constants";
 import { MyContext } from "../../context/Context";
 import Loading from "./Loading";
+import { generateURL } from "./utils";
+import { clearStoredData } from "../../hooks/usePersistedState.hook";
 const { useSearchParams, useNavigate } = require("react-router-dom");
 
 const Login_GetAuthURL = () => {
@@ -12,7 +14,7 @@ const Login_GetAuthURL = () => {
 
   //User clicked sign in button. Fetch Auth URL from server
   useEffect(() => {
-    console.log("Getting AUTH URL");
+    //console.log("/auth/signin > Getting AUTH URL");
     //Login Initiated. Get authURL from server
     dispatchAction(ACTIONS.LOGIN_INITIALIZED);
   }, []);
@@ -36,14 +38,21 @@ const Login_ReturnFromMicrosoft = () => {
   const {
     state: { authToken },
     actions: { dispatchAction },
+    other: { myStatus },
   } = useContext(MyContext);
 
   useEffect(() => {
+    //console.log(`REDIRECT. status ${status} myStatus ${myStatus}`);
     //Got code from user login, getting token.
-    dispatchAction(ACTIONS.LOGIN_VALIDATED, { code: searchParams.get("code") });
+    if (myStatus === ACTIONS.LOGIN_INITIALIZED) dispatchAction(ACTIONS.LOGIN_VALIDATED, { code: searchParams.get("code") });
+    if (myStatus === ACTIONS.LOGIN_LOGOUT) {
+      clearStoredData("local", "status");
+      goTo("/");
+    }
   }, []);
 
   useEffect(() => {
+    //console.log(`REDIRECT. authToken`, authToken);
     if (authToken != null) {
       goTo("/home");
     }
@@ -62,19 +71,15 @@ const Login_SignOut = () => {
     actions: { dispatchAction },
   } = useContext(MyContext);
 
-  const goTo = useNavigate();
-
   //User clicked sign out button. Clear state
   useEffect(() => {
-    console.log("Signin Out");
-    //Logout initiated, clear session data
-    dispatchAction(ACTIONS.LOGIN_LOGOUT);
-  }, []);
-
-  useEffect(() => {
-    //User logged out.
-    if (status === ACTIONS.LOGIN_LOGOUT) {
-      goTo("/");
+    if (status !== ACTIONS.LOGIN_LOGOUT) {
+      //console.log("/auth/signout > Sign Out initiated");
+      dispatchAction(ACTIONS.LOGIN_LOGOUT);
+    } else {
+      // console.log("/auth/signout > Redirecting to MS for logout");
+      let url = generateURL(ENDPOINTS.logout.url, { post_logout_redirect_uri: "http://localhost:3000/auth/redirect" });
+      window.location.replace(url);
     }
   }, [status]);
 

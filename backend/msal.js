@@ -21,7 +21,7 @@ const getAuthURL = async (client) => {
   try {
     //Get Auth URL
     const authURL = await client.getAuthCodeUrl(authParams);
-    console.log("Getting AUTH URL", authURL);
+    //console.log("Getting AUTH URL", authURL);
 
     //Confirm got URL
     if (typeof authURL === "string") {
@@ -58,7 +58,7 @@ const getAuthToken = async (code, client) => {
     if (userID) {
       const userDetails = await graph.getUserDetails(client, userID, userAccnt);
       const mainSchedule = await graph.getSchoolCal(accessToken);
-      console.log("SCHEDULE", mainSchedule);
+      //console.log("SCHEDULE", mainSchedule);
       if (userDetails) {
         myResponse.status = 200;
         myResponse.error = false;

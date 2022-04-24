@@ -28,7 +28,7 @@ AUTH_ROUTER
       req.session.userID = user.homeAccountId;
       if (!req.session.accounts) req.session.accounts = {};
       req.session.accounts[user.homeAccountId] = user;
-      console.log("SAVED SESSION Data", req.session);
+      //console.log("SAVED SESSION Data", req.session);
     }
     //Server Response
     res.status(response.status).json(response);

@@ -9,7 +9,7 @@ const getAuthenticatedClient = async (msalClient, userID, userAccount) => {
   if (!msalClient || !userID) {
     throw new Error(`Invalid MSAL state. Client: ${msalClient ? "present" : "missing"}, User ID: ${userID ? "present" : "missing"}`);
   }
-  console.log("Got msalClient and userID is", userAccount);
+  //console.log("Got msalClient and userID is", userAccount);
 
   // Initialize Graph client
   const client = graph.Client.init({
@@ -24,7 +24,7 @@ const getAuthenticatedClient = async (msalClient, userID, userAccount) => {
           // Attempt to get the token silently
           // This method uses the token cache and
           // refreshes expired tokens as needed
-          console.log("Got account, getting new token");
+          //console.log("Got account, getting new token");
 
           const response = await msalClient.acquireTokenSilent({
             scopes: MSAL_SCOPES.split(","),
@@ -42,7 +42,7 @@ const getAuthenticatedClient = async (msalClient, userID, userAccount) => {
       }
     },
   });
-  console.log("Got client", client);
+  //console.log("Got client", client);
 
   return client;
 };
@@ -65,7 +65,7 @@ const getSchoolCal = async (accessToken) => {
     },
   });
 
-  console.log("Got client", client);
+  //console.log("Got client", client);
 
   const mainSchedule = await client.api(`/me/calendars/${COOR_CAL_ID}/events`).header("Prefer", 'outlook.timezone="Eastern Standard Time"').get();
 

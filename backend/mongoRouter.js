@@ -2,7 +2,9 @@
 //NEW Router in Server
 const express = require("express");
 const MONGO_ROUTER = express();
-const payPeriods = require("./data/paySchedule.json");
+const { paySchedule } = require("./data/paySchedule.js");
+const samples = require("./data/sampleData");
+
 const moment = require("moment");
 //Get Handlers
 const { createDBdata, readDBdata, deleteDBdata, updateDBdata } = require("./crud");
@@ -36,9 +38,21 @@ MONGO_ROUTER
   })
 
   .get("/import", async (req, res) => {
-    //Query Param to pass
-    const response = await createDBdata("payCalendar", payPeriods);
-    console.log(response);
+    //Query Param to select data
+    const { coll, name } = req.query;
+    const data = samples[name];
+    let response;
+    if (data) {
+      response = await createDBdata(coll, data);
+    } else {
+      response = {
+        status: 400,
+        data: null,
+        error: true,
+        message: `No data found with name ${name}`,
+      };
+    }
+    //console.log(response);
     res.status(response.status).json(response);
   });
 
