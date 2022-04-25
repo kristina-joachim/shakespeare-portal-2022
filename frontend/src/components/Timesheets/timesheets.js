@@ -13,7 +13,10 @@ moment().locale("en-ca");
 
 const Timesheets = () => {
   const [payPeriod, setPayPeriod] = useState(null); //fetch payperiod based on current date.
+  const [periodEvents, setPeriodEvents] = useState(null);
+
   const {
+    state: { authToken },
     actions: { getServerData, dispatchAction },
   } = useContext(MyContext);
 
@@ -32,12 +35,16 @@ const Timesheets = () => {
     });
   }, []);
 
-  useEffect(() => {
-    if (payPeriod) updateData();
-  }, [payPeriod]);
   const changePayPeriod = (ev) => {
+    let myElement = ev.target;
+
+    while (myElement.tagName !== "BUTTON") {
+      let parent = myElement.parentElement;
+      myElement = parent;
+    }
+
+    let operation = myElement.name;
     let tempState = payPeriod;
-    let operation = ev.target.name;
     let currPeriodId = payPeriod._id.split("-"); ///"_id": "2022-pp-8"
     let newPeriodId = currPeriodId.pop(); //"8"
 
@@ -51,6 +58,8 @@ const Timesheets = () => {
     let myID = currPeriodId.join("-").concat("-", newPeriodId);
     const myUrl = generateURL(ENDPOINTS.tsById.url, { id: myID });
     setPayPeriod(null);
+    setPeriodEvents(null);
+
     getServerData(myUrl).then((results) => {
       if (results.error) dispatchAction({ type: ACTIONS.ERROR, data: { data: results, attemptedAction: "Changing Pay Periods" } });
       else {
@@ -60,6 +69,55 @@ const Timesheets = () => {
     });
   };
 
+  useEffect(() => {
+    console.info("EVENTS", periodEvents);
+    console.info("PAY PERIOD", payPeriod);
+
+    //got period?
+    if (payPeriod != null) {
+      //gotEvents ?
+      if (periodEvents != null) {
+        //yes, need to be updated?
+        if (payPeriod._id !== periodEvents.payPeriod) getEvents();
+      } else {
+        //no, fetch
+        getEvents();
+      }
+    }
+  }, [payPeriod]);
+
+  const getEvents = () => {
+    const startDateTime = moment(payPeriod.start).startOf("day").toISOString();
+    const endDateTime = moment(payPeriod.end).endOf("day").toISOString();
+
+    //Add params to URL
+    const myUrl = generateURL(ENDPOINTS.calendarEvents.url, {
+      endDateTime,
+      startDateTime,
+      $top: 1000,
+      $count: true,
+      calID: "AAMkADgzMmI5NGJiLWMxNWEtNDcyZC1iOGQ0LTVhODQ1MmQ1NzE5OQBGAAAAAADgl6AeKG8zQK8ZTKRR-fiwBwAKy6jAHRCJSqS2n-NMHj8VAAAAAAEGAAAKy6jAHRCJSqS2n-NMHj8VAACPQENfAAA=",
+    });
+    console.log("MY URL", myUrl);
+    //Add Authentication to headers
+    let myOptions = ENDPOINTS.calendarEvents.options;
+    myOptions.headers.Authorization = authToken.accessToken;
+
+    //Fetch Data
+    getServerData(myUrl, myOptions).then((results) => {
+      if (results.error) dispatchAction({ type: ACTIONS.ERROR, data: { data: results, attemptedAction: "Getting today's calendarView" } });
+      else {
+        let payPeriodEvents = results.value;
+        const susansEvents = payPeriodEvents.filter((event) => {
+          return event.attendees.find((attendee) => {
+            return attendee.emailAddress.address === "SusanP@ecoleshakespeare.com";
+          });
+        });
+        console.log("FILTER EVENTS", susansEvents);
+        setPeriodEvents({ payPeriod: payPeriod._id, events: susansEvents });
+      }
+    });
+  };
   const updateData = (ev) => {
     if (ev) {
       let changedInput = ev.target;
@@ -70,7 +128,7 @@ const Timesheets = () => {
       }
     }
 
-    let totalDays = document.getElementById("totalDays");
+    /* let totalDays = document.getElementById("totalDays");
     //update Days
     let days = totalDays.htmlFor.value.split(" ");
     totalDays.value = days.reduce((dateCnt, dateInput) => {
@@ -100,7 +158,7 @@ const Timesheets = () => {
     }).length;
 
     let types = document.getElementById("types");
-    let summary = document.getElementById("summary");
+    let summary = document.getElementById("summary"); */
   };
 
   const updateDuration = (affectedID) => {
@@ -158,103 +216,80 @@ const Timesheets = () => {
               </InfoItem>
             </InfoNav>
             <form name="timesheet" onLoad={updateData} onChange={updateData} onInput={updateData}>
-              <Attendance>
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Description</th>
-                    <th>Start</th>
-                    <th>End</th>
-                    <th>Duration</th>
-                    <th>Type</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody id="reports">
-                  <tr>
-                    <td>1</td>
-                    <td>Walmart Evals - Abbie Berger</td>
-                    <td>
-                      <input name="start-1" id="start-1" type="datetime-local" />
-                    </td>
-                    <td>
-                      <input name="end-1" id="end-1" type="datetime-local" />
-                    </td>
-                    <td>
-                      <output id="duration-1" name="duration-1" htmlFor="start-1 end-1"></output>
-                    </td>
-                    <td>
-                      <select name="type-1" id="type-1">
-                        <option value="class">Class</option>
-                        <option value="cxl">Class (CXL)</option>
-                        <option value="eval">Evaluation</option>
-                        <option value="admin">Admin</option>
-                        <option value="travel">Travel</option>
-                      </select>
-                    </td>
-                    <td>
-                      <label>
-                        <input
-                          type="checkbox"
-                          name="checked-1"
-                          id="checked-1"
-                          onInput={(ev) => (ev.target.checked ? (document.querySelector("#status-1").value = "Confirmed! Thank you.") : (document.querySelector("#status-1").value = "Confirm"))}
-                        />
-                        <input disabled id="status-1" name="status-1" defaultValue="Confirm" />
-                      </label>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>2</td>
-                    <td>Walmart Evals - Lizeth Hebert</td>
-                    <td>
-                      <input name="start-2" id="start-2" type="datetime-local" />
-                    </td>
-                    <td>
-                      <input name="end-2" id="end-2" type="datetime-local" />
-                    </td>
-                    <td>
-                      <output id="duration-2" name="duration-2" htmlFor="start-2 end-2"></output>
-                    </td>
-                    <td>
-                      <select name="type-2" id="type-2">
-                        <option value="class">Class</option>
-                        <option value="cxl">Class (CXL)</option>
-                        <option value="eval">Evaluation</option>
-                        <option value="admin">Admin</option>
-                        <option value="travel">Travel</option>
-                      </select>
-                    </td>
-                    <td>
-                      <label>
-                        <input
-                          type="checkbox"
-                          name="checked-2"
-                          id="checked-2"
-                          onInput={(ev) => (ev.target.checked ? (document.querySelector("#status-2").value = "Confirmed! Thank you.") : (document.querySelector("#status-2").value = "Confirm"))}
-                        />
-                        <input disabled id="status-2" name="status-2" defaultValue="Confirm" />
-                      </label>
-                    </td>
-                  </tr>
-                </tbody>
-                <tfoot>
-                  <tr>
-                    <td colSpan={4}>
-                      Total: <span id="totalRows"></span> reports over <output id="totalDays" name="totalDays" htmlFor="start-1 start-2 end-1 end-2"></output> days.
-                    </td>
-                    <td>
-                      <output id="totalHours" name="totalHours" htmlFor="duration-1 duration-2"></output>
-                    </td>
-                    <td>
-                      <output id="types" name="types" htmlFor="type-1 type-2"></output>
-                    </td>
-                    <td>
-                      <output id="summary" name="summary" htmlFor="status-1 status-2 checked-1 checked-2"></output>
-                    </td>
-                  </tr>
-                </tfoot>
-              </Attendance>
+              {periodEvents != null && periodEvents.payPeriod === payPeriod._id ? (
+                <Attendance>
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Description</th>
+                      <th>Start</th>
+                      <th>End</th>
+                      <th>Duration</th>
+                      <th>Type</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="reports">
+                    {periodEvents.events.map((event, index) => {
+                      return (
+                        <tr key={`pp-${payPeriod._id.split("-").pop()}-event-${index}`} id={`duration-${index}`}>
+                          <td>{index}</td>
+                          <td>{event.subject}</td>
+                          <td>
+                            <input name={`start-${index}`} id={`start-${index}`} type="datetime-local" defaultValue={event.start.dateTime.toString()} />
+                          </td>
+                          <td>
+                            <input name={`end-${index}`} id={`end-${index}`} type="datetime-local" defaultValue={event.end.dateTime} />
+                          </td>
+                          <td>
+                            <output name={`duration-${index}`} id={`duration-${index}`} htmlFor={`start-${index} end-${index}`}></output>
+                          </td>
+                          <td>
+                            <select name={`type-${index}`} id={`type-${index}`}>
+                              <option value="class">Class</option>
+                              <option value="cxl">Class (CXL)</option>
+                              <option value="eval">Evaluation</option>
+                              <option value="admin">Admin</option>
+                              <option value="travel">Travel</option>
+                            </select>
+                          </td>
+                          <td>
+                            <label>
+                              <input
+                                type="checkbox"
+                                name={`checked-${index}`}
+                                id={`checked-${index}`}
+                                onInput={(ev) =>
+                                  ev.target.checked ? (document.querySelector(`#status-${index}`).value = "Confirmed! Thank you.") : (document.querySelector(`#status-${index}`).value = "Confirm")
+                                }
+                              />
+                              <input disabled name={`status-${index}`} id={`status-${index}`} defaultValue="Confirm" />
+                            </label>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <td colSpan={4}>
+                        Total: <span id="totalRows"></span> reports over <output id="totalDays" name="totalDays" htmlFor=""></output> days.
+                      </td>
+                      <td>
+                        <output id="totalHours" name="totalHours" htmlFor=""></output>
+                      </td>
+                      <td>
+                        <output id="types" name="types" htmlFor=""></output>
+                      </td>
+                      <td>
+                        <output id="summary" name="summary" htmlFor=""></output>
+                      </td>
+                    </tr>
+                  </tfoot>
+                </Attendance>
+              ) : (
+                <Loading />
+              )}
               <SubmitBtn type="submit" disabled>
                 Submit hours
               </SubmitBtn>
@@ -276,6 +311,7 @@ const Content = styled.div`
   padding: 10px;
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
 `;
 
 const TitleNav = styled.div`
@@ -326,7 +362,7 @@ const InfoNav = styled.div`
   flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
-  margin-top: 10px;
+  margin: 10px 0 20px;
   gap: 20px;
 `;
 
@@ -348,8 +384,20 @@ const InfoValue = styled.h2`
 `;
 
 const Attendance = styled.table`
-  border: 1px solid #ddd;
+  margin: 10px;
+  width: calc(100% - 20px);
+  border: 1px solid;
   border-collapse: collapse;
+  max-height: 100%;
+
+  th,
+  tr,
+  td {
+    border: 1px solid;
+    padding: 5px;
+    text-align: center;
+    vertical-align: center;
+  }
 `;
 
 const SubmitBtn = styled.button``;

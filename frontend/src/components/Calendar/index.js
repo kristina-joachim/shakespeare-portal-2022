@@ -5,20 +5,13 @@ import Event from "./Event";
 
 const Calendar = () => {
   const {
-    state: { events },
+    state: { today },
   } = useContext(MyContext);
 
-  useEffect(() => {
-    //"2019-11-08T19:00:00-08:00".  $top 1000
-  }, []);
-
-  const todaysEvents = events.value.filter((event) => {
-    return event.id > 0;
-  });
   return (
     <>
       <Content>
-        {events.value.map((event) => {
+        {today.map((event) => {
           return <Event key={`event-${event.id}`} ev={event} />;
         })}
       </Content>

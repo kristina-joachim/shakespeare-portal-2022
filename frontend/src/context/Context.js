@@ -31,7 +31,7 @@ const myReducer = (state, action) => {
       tempState.authToken = action.data.authToken;
       tempState.currUser = action.data.user;
       tempState.calendars = action.data.calendars;
-      tempState.events = action.data.events;
+      tempState.events = action.data.mainSchedule;
       tempState.mainSchedule = action.data.mainSchedule;
       break;
     case ACTIONS.LOGIN_LOGOUT:
@@ -49,6 +49,9 @@ const myReducer = (state, action) => {
     case ACTIONS.ERROR:
       tempState.status = action.type;
       tempState.error = { attemptedAction: action.attemptedAction, ...action.data };
+      break;
+    case ACTIONS.TODAYS_EVENTS:
+      tempState.today = action.data;
       break;
     default:
       console.error("REDUCER > Unknown action.type", action.type);

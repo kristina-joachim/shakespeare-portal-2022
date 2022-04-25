@@ -7,6 +7,7 @@ export const ACTIONS = {
   GET_MAILBOX: "GET_MAILBOX",
   GET_EVENT_DETAILS: "GET_EVENT_DETAILS",
   ERROR: "ERROR",
+  TODAYS_EVENTS: "TODAYS_EVENTS",
 };
 
 export const URLS = {
@@ -32,8 +33,14 @@ export const ENDPOINTS = {
       },
     },
   },
-  todaysEvents: {
-    url: BASE_URL + "/me/calendar/calendarView?startDateTime&endDateTime",
+  calendarEvents: {
+    url: BASE_URL + "/me/calendars/:calID/calendarView?startDateTime&endDateTime&$top&$count",
+    options: {
+      headers: {
+        Authorization: "authToken",
+        Prefer: 'outlook.timezone="Eastern Standard Time"',
+      },
+    },
   },
   logout: {
     url: "https://login.microsoftonline.com/common/oauth2/v2.0/logout?post_logout_redirect_uri",
