@@ -16,7 +16,6 @@ const Dashboard = () => {
     state: { authToken, today },
     actions: { getServerData, dispatchAction },
   } = useContext(MyContext);
-  const [events, setEvents] = useState();
   const [alerts, setAlerts] = useState([]);
   const [cal, setCal] = useState(null);
   const [fullCal, setFullCal] = useState(null);
@@ -25,6 +24,28 @@ const Dashboard = () => {
   //Set current TIME
   useEffect(() => {
     //is reporting deadline in the next 2 days?
+    //currDate 26 Dec 21 00:01 EST
+    const today = moment().format("DD MMM YY HH:mm") + " EST";
+    const tempState = alerts;
+    //add date as search param
+    const myUrl = generateURL(ENDPOINTS.tsByDate.url, { date: today });
+
+    getServerData(myUrl).then((results) => {
+      if (results.error) dispatchAction({ type: ACTIONS.ERROR, data: { data: results, attemptedAction: "Getting today's pay period" } });
+      else {
+        let deadline = moment(results.data.deadline);
+        let daysUntil = deadline.diff(today, "days");
+        let hoursUntil = daysUntil < 1 && deadline.diff(today, "hours");
+        let isPassed = deadline.diff(today, "minutes") < 0;
+        let title = "Timesheets: Hours reporting deadline";
+        let message;
+        if (isPassed) {
+          message = `Your timesheets are overdue! You may not get paid on time. Please submit them as soon as possible`;
+        }
+        tempState.push({ title, message, link: "./timesheets" });
+        setAlerts(tempState);
+      }
+    });
     // add to Alerts.
     setCal({ today: moment(), current: moment() });
     //getToday's events
@@ -126,66 +147,75 @@ const Dashboard = () => {
       <Header title={"Dashboard"} />
       {allLoaded ? (
         <Content>
-          <FloatBox size="60%">
-            <BoxTitle>Classes</BoxTitle>
-            <BoxContent>{<Calendar />}</BoxContent>
-          </FloatBox>
+          <FloatBoxes>
+            <FlexCol className="classes">
+              <FloatBox>
+                <BoxTitle>Alerts</BoxTitle>
+                <BoxContent>
+                  {alerts.length
+                    ? alerts.map((alert, i) => {
+                        return <Alert key={`alert-${i}`} id={`alert-${i}`} title={alert.title} text={alert.text} link={alert.link} />;
+                      })
+                    : "No alerts."}
+                </BoxContent>
+              </FloatBox>
 
-          <FloatBox size="35%">
-            <BoxTitle>Alerts</BoxTitle>
-            <BoxContent>
-              {alerts.length
-                ? alerts.map((alert) => {
-                    return <Alert title={alert.title} text={alert.text} link={alert.link} />;
-                  })
-                : "No alerts."}
-            </BoxContent>
-          </FloatBox>
-
-          <FloatBox size="35%">
-            <>
-              <BoxTitle>
-                <NavIcons name="prev" onClick={changeMonth}>
-                  <FaChevronLeft className="icon" />
-                </NavIcons>
-                <span>{cal.current.format("MMMM YYYY")}</span>
-                <NavIcons name="next" onClick={changeMonth}>
-                  <FaChevronRight className="icon" />
-                </NavIcons>
-              </BoxTitle>
-              <BoxContent>
-                <MyCalendar>
-                  <colgroup>
-                    <col span={1} className="weekend" style={{ color: "red" }} />
-                    <col span={5} className="weekday" />
-                    <col span={1} className="weekend" style={{ color: "red" }} />
-                  </colgroup>
-                  <thead>
-                    <tr>
-                      <th>S</th>
-                      <th>M</th>
-                      <th>T</th>
-                      <th>W</th>
-                      <th>T</th>
-                      <th>F</th>
-                      <th>S</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {fullCal.map((week) => {
-                      return (
+              <FloatBox>
+                <BoxTitle>Classes</BoxTitle>
+                <BoxContent>{<Calendar />}</BoxContent>
+              </FloatBox>
+            </FlexCol>
+            <FlexCol className="calendar">
+              <FloatBox>
+                <>
+                  <BoxTitle>
+                    <NavIcons name="prev" onClick={changeMonth}>
+                      <FaChevronLeft className="icon" />
+                    </NavIcons>
+                    <span>{cal.current.format("MMMM YYYY")}</span>
+                    <NavIcons name="next" onClick={changeMonth}>
+                      <FaChevronRight className="icon" />
+                    </NavIcons>
+                  </BoxTitle>
+                  <BoxContent>
+                    <MyCalendar>
+                      <colgroup>
+                        <col span={1} className="weekend" style={{ color: "red" }} />
+                        <col span={5} className="weekday" />
+                        <col span={1} className="weekend" style={{ color: "red" }} />
+                      </colgroup>
+                      <thead>
                         <tr>
-                          {week.days.map((day) => {
-                            return <td className={day.month() === cal.current.month() ? "ok" : "fade"}>{day.date()}</td>;
-                          })}
+                          <th>S</th>
+                          <th>M</th>
+                          <th>T</th>
+                          <th>W</th>
+                          <th>T</th>
+                          <th>F</th>
+                          <th>S</th>
                         </tr>
-                      );
-                    })}
-                  </tbody>
-                </MyCalendar>
-              </BoxContent>
-            </>
-          </FloatBox>
+                      </thead>
+                      <tbody>
+                        {fullCal.map((week, wIndex) => {
+                          return (
+                            <tr key={`week-${wIndex}`}>
+                              {week.days.map((day, dIndex) => {
+                                return (
+                                  <td className={day.month() === cal.current.month() ? "ok" : "fade"} key={`day-${dIndex}`}>
+                                    <div className={day.isSame(cal.today, "day") ? " today" : ""}>{day.date()}</div>
+                                  </td>
+                                );
+                              })}
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </MyCalendar>
+                  </BoxContent>
+                </>
+              </FloatBox>
+            </FlexCol>
+          </FloatBoxes>
         </Content>
       ) : (
         <Loading />
@@ -197,28 +227,45 @@ export default Dashboard;
 
 const Content = styled.div`
   background: linear-gradient(to right, var(--shakes-blue1) -50%, #ffffff 110%);
-  display: flex;
-  flex-flow: column wrap;
-  padding: 20px;
   overflow-y: auto;
   max-height: calc(100vh - 50px);
   height: calc(100% - 50px);
   border-radius: 0 0 15px 15px;
+`;
+const FloatBoxes = styled.div`
+  display: flex;
+  padding: 10px 20px;
+  flex-wrap: wrap-reverse;
+  align-content: flex-end;
   gap: 10px;
+`;
+
+const FlexCol = styled.div`
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 10px;
+  &.calendar {
+    flex: 0 1 300px;
+  }
+
+  &.classes {
+    flex: 1 0 450px;
+  }
 `;
 
 const FloatBox = styled.div`
   border-radius: 15px;
   background: linear-gradient(to top, #ccffff -10%, #ffffff 90%);
-  padding: 10px;
-  width: ${(props) => props.size ?? "50%"};
-  height: auto;
+  padding: 20px;
+  box-shadow: 0 2px 5px 1px var(--shakes-grey);
 `;
 
 const BoxTitle = styled.h2`
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 10px;
   span {
     flex: 1;
     text-align: center;
@@ -227,6 +274,7 @@ const BoxTitle = styled.h2`
 `;
 
 const BoxContent = styled.div``;
+
 const NavIcons = styled.button`
   background: none;
   padding: 0;
@@ -247,15 +295,19 @@ const MyCalendar = styled.table`
   margin-top: 10px;
   border: 1px solid;
   border-collapse: collapse;
-  aspect-ratio: 1/1;
   background-color: white;
+
+  td,
+  th {
+    width: 40px;
+  }
 
   tr,
   th,
   td {
+    height: 40px;
     border: 1px solid;
     text-align: center;
-    padding: 5px;
   }
 
   thead,
@@ -269,5 +321,17 @@ const MyCalendar = styled.table`
 
   .weekend {
     background-color: var(--shakes-blue1);
+  }
+
+  .today {
+    margin: auto;
+    width: 90%;
+    aspect-ratio: 1 / 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    border-radius: 50%;
+    background-color: tomato;
   }
 `;

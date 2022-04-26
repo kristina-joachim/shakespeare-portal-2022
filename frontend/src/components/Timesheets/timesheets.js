@@ -5,7 +5,7 @@ import { ACTIONS, ENDPOINTS } from "../Shared/constants";
 import Loading from "../Shared/Loading";
 import { generateURL } from "../Shared/utils";
 import Header from "../Shared/Header";
-import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { FaCheck, FaChevronLeft, FaChevronRight, FaEdit, FaTimes } from "react-icons/fa";
 
 import moment from "moment";
 import CheckBox from "./Checkbox";
@@ -14,12 +14,19 @@ moment().locale("en-ca");
 const Timesheets = () => {
   const [payPeriod, setPayPeriod] = useState(null); //fetch payperiod based on current date.
   const [periodEvents, setPeriodEvents] = useState(null);
+  const [timesheet, setTimesheet] = useState({
+    status: "",
+    total: "",
+    count: "",
+    hours: [],
+  });
 
   const {
     state: { authToken },
     actions: { getServerData, dispatchAction },
   } = useContext(MyContext);
 
+  //Fetch Pay Periods
   useEffect(() => {
     //currDate 26 Dec 21 00:01 EST
     const today = moment().format("DD MMM YY HH:mm") + " EST";
@@ -35,6 +42,25 @@ const Timesheets = () => {
     });
   }, []);
 
+  //Fetch Events for Pay Period
+  useEffect(() => {
+    console.info("EVENTS", periodEvents);
+    console.info("PAY PERIOD", payPeriod);
+
+    //got period?
+    if (payPeriod != null) {
+      //gotEvents ?
+      if (periodEvents != null) {
+        //yes, need to be updated?
+        if (payPeriod._id !== periodEvents.payPeriod) getEvents();
+      } else {
+        //no, fetch
+        getEvents();
+      }
+    }
+  }, [payPeriod]);
+
+  //Change Pay period with arrows
   const changePayPeriod = (ev) => {
     let myElement = ev.target;
 
@@ -69,23 +95,7 @@ const Timesheets = () => {
     });
   };
 
-  useEffect(() => {
-    console.info("EVENTS", periodEvents);
-    console.info("PAY PERIOD", payPeriod);
-
-    //got period?
-    if (payPeriod != null) {
-      //gotEvents ?
-      if (periodEvents != null) {
-        //yes, need to be updated?
-        if (payPeriod._id !== periodEvents.payPeriod) getEvents();
-      } else {
-        //no, fetch
-        getEvents();
-      }
-    }
-  }, [payPeriod]);
-
+  //Fetch Events
   const getEvents = () => {
     const startDateTime = moment(payPeriod.start).startOf("day").toISOString();
     const endDateTime = moment(payPeriod.end).endOf("day").toISOString();
@@ -118,6 +128,8 @@ const Timesheets = () => {
       }
     });
   };
+
+  //Update calculations
   const updateData = (ev) => {
     if (ev) {
       let changedInput = ev.target;
@@ -161,6 +173,7 @@ const Timesheets = () => {
     let summary = document.getElementById("summary"); */
   };
 
+  //Update durations
   const updateDuration = (affectedID) => {
     console.log("UPDATE DURACTIONS", affectedID);
     let affectedRow = affectedID.split("-")[1];
@@ -180,6 +193,8 @@ const Timesheets = () => {
     }
     return;
   };
+
+  const modifyEvent = (ev) => {};
 
   return (
     <>
@@ -219,59 +234,72 @@ const Timesheets = () => {
               {periodEvents != null && periodEvents.payPeriod === payPeriod._id ? (
                 <Attendance>
                   <thead>
-                    <tr>
-                      <th>#</th>
-                      <th>Description</th>
-                      <th>Start</th>
-                      <th>End</th>
-                      <th>Duration</th>
-                      <th>Type</th>
-                      <th>Actions</th>
-                    </tr>
+                    <TitleRow>
+                      <HiddenCol className="ColTitle">#</HiddenCol>
+                      <ClassNameCol className="ColTitle">Description</ClassNameCol>
+                      <DateCol className="ColTitle">Date</DateCol>
+                      <TimeCol className="ColTitle">Start-End Time</TimeCol>
+                      <DurationCol className="ColTitle">Duration</DurationCol>
+                      <TypeCol className="ColTitle">Type</TypeCol>
+                      <ActionsCol className="ColTitle">Actions</ActionsCol>
+                    </TitleRow>
                   </thead>
                   <tbody id="reports">
-                    {periodEvents.events.map((event, index) => {
-                      return (
-                        <tr key={`pp-${payPeriod._id.split("-").pop()}-event-${index}`} id={`duration-${index}`}>
-                          <td>{index}</td>
-                          <td>{event.subject}</td>
-                          <td>
-                            <input name={`start-${index}`} id={`start-${index}`} type="datetime-local" defaultValue={event.start.dateTime.toString()} />
-                          </td>
-                          <td>
-                            <input name={`end-${index}`} id={`end-${index}`} type="datetime-local" defaultValue={event.end.dateTime} />
-                          </td>
-                          <td>
-                            <output name={`duration-${index}`} id={`duration-${index}`} htmlFor={`start-${index} end-${index}`}></output>
-                          </td>
-                          <td>
-                            <select name={`type-${index}`} id={`type-${index}`}>
-                              <option value="class">Class</option>
-                              <option value="cxl">Class (CXL)</option>
-                              <option value="eval">Evaluation</option>
-                              <option value="admin">Admin</option>
-                              <option value="travel">Travel</option>
-                            </select>
-                          </td>
-                          <td>
-                            <label>
+                    {periodEvents.events
+                      .sort((a, b) => moment(a.start.dateTime).toDate() - moment(b.start.dateTime).toDate())
+                      .map((event, index) => {
+                        return (
+                          <EventRow key={`pp-${payPeriod._id.split("-").pop()}-event-${index}`} id={`event-${index}`}>
+                            <HiddenCol>
+                              <input name={`index-${index}`} id={`index-${index}`} type="hidden" />
+                            </HiddenCol>
+                            <ClassNameCol>{event.subject}</ClassNameCol>
+                            <DateCol>
                               <input
-                                type="checkbox"
-                                name={`checked-${index}`}
-                                id={`checked-${index}`}
-                                onInput={(ev) =>
-                                  ev.target.checked ? (document.querySelector(`#status-${index}`).value = "Confirmed! Thank you.") : (document.querySelector(`#status-${index}`).value = "Confirm")
-                                }
+                                name={`date-${index}`}
+                                id={`date-${index}`}
+                                type="date"
+                                value={moment(event.start.dateTime).isSame(event.end.dateTime, "day") ? moment(event.start.dateTime).format("YYYY-MM-DD") : ""}
+                                disabled
+                                hidden
                               />
-                              <input disabled name={`status-${index}`} id={`status-${index}`} defaultValue="Confirm" />
-                            </label>
-                          </td>
-                        </tr>
-                      );
-                    })}
+                              {moment(event.start.dateTime).isSame(event.end.dateTime, "day") ? moment(event.start.dateTime).format("ddd, MMM D, yyyy") : ""}
+                            </DateCol>
+                            <TimeCol className="ev-time">
+                              {moment(event.start.dateTime).format("h:mm a") + " - " + moment(event.end.dateTime).format("h:mm a")}
+                              <input name={`start-${index}`} id={`start-${index}`} type="time" value={moment(event.start.dateTime).format("hh:mm")} disabled hidden />
+                              <input name={`end-${index}`} id={`end-${index}`} type="time" value={moment(event.end.dateTime).format("hh:mm")} disabled hidden />
+                            </TimeCol>
+                            <DurationCol>
+                              <input
+                                type="hidden"
+                                name={`duration-${index}`}
+                                id={`duration-${index}`}
+                                defaultValue={moment(event.end.dateTime).diff(event.start.dateTime, "hours")}
+                                value={moment(event.end.dateTime).diff(event.start.dateTime, "hours")}
+                              />
+                              {moment(event.end.dateTime).diff(event.start.dateTime, "hours").toFixed(2) + " hours" ?? ""}
+                            </DurationCol>
+                            <TypeCol>
+                              <select name={`type-${index}`} id={`type-${index}`}>
+                                <option value="class">Class</option>
+                                <option value="cxl">Class (CXL)</option>
+                                <option value="eval">Evaluation</option>
+                                <option value="admin">Admin</option>
+                                <option value="travel">Travel</option>
+                              </select>
+                            </TypeCol>
+                            <ActionsCol>
+                              <FaCheck />
+                              <FaEdit />
+                              <FaTimes />
+                            </ActionsCol>
+                          </EventRow>
+                        );
+                      })}
                   </tbody>
                   <tfoot>
-                    <tr>
+                    <SubTotalRow>
                       <td colSpan={4}>
                         Total: <span id="totalRows"></span> reports over <output id="totalDays" name="totalDays" htmlFor=""></output> days.
                       </td>
@@ -284,7 +312,7 @@ const Timesheets = () => {
                       <td>
                         <output id="summary" name="summary" htmlFor=""></output>
                       </td>
-                    </tr>
+                    </SubTotalRow>
                   </tfoot>
                 </Attendance>
               ) : (
@@ -395,16 +423,22 @@ const Attendance = styled.table`
   td {
     border: 1px solid;
     padding: 5px;
-    text-align: center;
-    vertical-align: center;
   }
 `;
 
 const SubmitBtn = styled.button``;
+const HiddenCol = styled.td`
+  display: none;
+`;
+const ClassNameCol = styled.th`
+  text-align: left;
+`;
+const DateCol = styled.td``;
+const TimeCol = styled.td``;
+const DurationCol = styled.td``;
+const TypeCol = styled.td``;
+const ActionsCol = styled.td``;
 
 const TitleRow = styled.tr``;
-const ColTitle = styled.th``;
-const ClassNameCol = styled.th``;
-const DataCol = styled.td``;
-const StudentRow = styled.tr``;
+const EventRow = styled.tr``;
 const SubTotalRow = styled.tr``;

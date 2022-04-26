@@ -33,8 +33,8 @@ const Content = styled.div`
   position: sticky;
   left: 0;
   top: 0;
-  max-height: 100vh;
-  width: 200px;
+  max-height: 100%;
+  max-width: 200px;
   background-color: var(--nav-back);
   display: flex;
   justify-content: space-between;
@@ -46,6 +46,10 @@ const Content = styled.div`
   @media screen and (max-width: 600px) {
     padding: 5px;
     width: 80px;
+  }
+
+  @media screen and (max-height: 650px) {
+    overflow-y: scroll;
   }
 `;
 
