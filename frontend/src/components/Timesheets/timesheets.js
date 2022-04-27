@@ -290,7 +290,7 @@ const Timesheets = () => {
                               <input name={`name-${index}`} id={`name-${index}`} value={event.subject} disabled />
                             </ClassNameCol>
                             <DateCol>
-                              <p>{moment(event.start.dateTime).isSame(event.end.dateTime, "day") ? moment(event.start.dateTime).format("lll") : ""}</p>
+                              <p>{moment(event.start.dateTime).isSame(event.end.dateTime, "day") ? moment(event.start.dateTime).format("ddd, ll") : ""}</p>
                               <input
                                 name={`date-${index}`}
                                 id={`date-${index}`}
