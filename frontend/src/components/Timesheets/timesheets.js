@@ -1,14 +1,13 @@
 import { useContext, useEffect, useState } from "react";
-import styled, { css } from "styled-components";
+import styled from "styled-components";
 import { MyContext } from "../../context/Context";
 import { ACTIONS, ENDPOINTS } from "../Shared/constants";
 import Loading from "../Shared/Loading";
 import { generateURL } from "../Shared/utils";
 import Header from "../Shared/Header";
-import { FaCheck, FaChevronLeft, FaChevronRight, FaEdit, FaTimes } from "react-icons/fa";
+import { FaCheck, FaChevronLeft, FaChevronRight, FaPencilAlt, FaRegCheckSquare, FaTimes, FaUndo } from "react-icons/fa";
 
 import moment from "moment";
-import CheckBox from "./Checkbox";
 moment().locale("en-ca");
 
 const Timesheets = () => {
@@ -44,9 +43,6 @@ const Timesheets = () => {
 
   //Fetch Events for Pay Period
   useEffect(() => {
-    console.info("EVENTS", periodEvents);
-    console.info("PAY PERIOD", payPeriod);
-
     //got period?
     if (payPeriod != null) {
       //gotEvents ?
@@ -108,7 +104,6 @@ const Timesheets = () => {
       $count: true,
       calID: "AAMkADgzMmI5NGJiLWMxNWEtNDcyZC1iOGQ0LTVhODQ1MmQ1NzE5OQBGAAAAAADgl6AeKG8zQK8ZTKRR-fiwBwAKy6jAHRCJSqS2n-NMHj8VAAAAAAEGAAAKy6jAHRCJSqS2n-NMHj8VAACPQENfAAA=",
     });
-    console.log("MY URL", myUrl);
     //Add Authentication to headers
     let myOptions = ENDPOINTS.calendarEvents.options;
     myOptions.headers.Authorization = authToken.accessToken;
@@ -123,7 +118,10 @@ const Timesheets = () => {
             return attendee.emailAddress.address === "SusanP@ecoleshakespeare.com";
           });
         });
-        console.log("FILTER EVENTS", susansEvents);
+        susansEvents.forEach((event) => {
+          let diff = moment(event.end.dateTime).diff(event.start.dateTime);
+          event.duration = moment.duration(diff).as("hours");
+        });
         setPeriodEvents({ payPeriod: payPeriod._id, events: susansEvents });
       }
     });
@@ -134,9 +132,8 @@ const Timesheets = () => {
     if (ev) {
       let changedInput = ev.target;
       //console.log("apr23", changedInput);
-      switch (changedInput.type) {
-        case "datetime-local":
-          updateDuration(changedInput.id);
+      if (changedInput.type === "datetime-local") {
+        updateDuration(changedInput.id);
       }
     }
 
@@ -194,7 +191,47 @@ const Timesheets = () => {
     return;
   };
 
-  const modifyEvent = (ev) => {};
+  const modifyEvent = (ev, type) => {
+    ev.preventDefault();
+    let myElement = ev.target;
+    while (myElement.tagName !== "TR") {
+      let parent = myElement.parentElement;
+      myElement = parent;
+    }
+    //let calID = myElement.id.split("_|_")[1];
+    let eventIndex = myElement.id.split("_|_")[0];
+    //let myEvent = periodEvents.events.find((event) => event.iCalUId === calID);
+    switch (type) {
+      case "confirm":
+        const start = moment(document.getElementById(`date-${eventIndex}`).value, moment.HTML5_FMT.DATE, document.getElementById(`start-${eventIndex}`).value, moment.HTML5_FMT.TIME);
+        const end = moment(document.getElementById(`date-${eventIndex}`).value, moment.HTML5_FMT.DATE, document.getElementById(`end-${eventIndex}`).value, moment.HTML5_FMT.TIME);
+        console.info("START", start);
+        const hourToAdd = {
+          start: start.toJSON(),
+          end: end.toJSON(),
+          duration: Number(document.getElementById(`duration-${eventIndex}`).value.split(" ")[0]),
+          type: document.getElementById(`type-${eventIndex}`).value,
+          name: document.getElementById(`name-${eventIndex}`).value,
+        };
+
+        console.info("HOUR TO ADD", hourToAdd);
+
+        //Styling for confirmed.
+        myElement.style.backgroundColor = "lightgreen";
+        document.getElementById(`type-${eventIndex}`).disabled = true;
+        document.getElementById(`confirm-${eventIndex}`).style.border = "1px solid currentColor";
+        document.getElementById(`delete-${eventIndex}`).style.display = "none";
+        document.getElementById(`modify-${eventIndex}`).style.display = "none";
+        document.getElementById(`undo-${eventIndex}`).style.display = "inline-flex";
+        break;
+      case "modify":
+        break;
+      case "delete":
+        break;
+      default:
+        break;
+    }
+  };
 
   return (
     <>
@@ -235,7 +272,6 @@ const Timesheets = () => {
                 <Attendance>
                   <thead>
                     <TitleRow>
-                      <HiddenCol className="ColTitle">#</HiddenCol>
                       <ClassNameCol className="ColTitle">Description</ClassNameCol>
                       <DateCol className="ColTitle">Date</DateCol>
                       <TimeCol className="ColTitle">Start-End Time</TimeCol>
@@ -249,36 +285,29 @@ const Timesheets = () => {
                       .sort((a, b) => moment(a.start.dateTime).toDate() - moment(b.start.dateTime).toDate())
                       .map((event, index) => {
                         return (
-                          <EventRow key={`pp-${payPeriod._id.split("-").pop()}-event-${index}`} id={`event-${index}`}>
-                            <HiddenCol>
-                              <input name={`index-${index}`} id={`index-${index}`} type="hidden" />
-                            </HiddenCol>
-                            <ClassNameCol>{event.subject}</ClassNameCol>
+                          <EventRow key={`pp-${payPeriod._id.split("-").pop()}-event-${index}`} id={`${index}_|_${event.iCalUId}`}>
+                            <ClassNameCol>
+                              <input name={`name-${index}`} id={`name-${index}`} value={event.subject} disabled />
+                            </ClassNameCol>
                             <DateCol>
+                              <p>{moment(event.start.dateTime).isSame(event.end.dateTime, "day") ? moment(event.start.dateTime).format("lll") : ""}</p>
                               <input
                                 name={`date-${index}`}
                                 id={`date-${index}`}
                                 type="date"
                                 value={moment(event.start.dateTime).isSame(event.end.dateTime, "day") ? moment(event.start.dateTime).format("YYYY-MM-DD") : ""}
                                 disabled
-                                hidden
                               />
-                              {moment(event.start.dateTime).isSame(event.end.dateTime, "day") ? moment(event.start.dateTime).format("ddd, MMM D, yyyy") : ""}
                             </DateCol>
                             <TimeCol className="ev-time">
-                              {moment(event.start.dateTime).format("h:mm a") + " - " + moment(event.end.dateTime).format("h:mm a")}
-                              <input name={`start-${index}`} id={`start-${index}`} type="time" value={moment(event.start.dateTime).format("hh:mm")} disabled hidden />
-                              <input name={`end-${index}`} id={`end-${index}`} type="time" value={moment(event.end.dateTime).format("hh:mm")} disabled hidden />
+                              <p>
+                                {moment(event.start.dateTime).format("h:mm a")} - {moment(event.end.dateTime).format("h:mm a")}
+                              </p>
+                              <input name={`start-${index}`} id={`start-${index}`} type="time" value={moment(event.start.dateTime).format("hh:mm")} disabled />
+                              <input name={`end-${index}`} id={`end-${index}`} type="time" value={moment(event.end.dateTime).format("hh:mm")} disabled />
                             </TimeCol>
                             <DurationCol>
-                              <input
-                                type="hidden"
-                                name={`duration-${index}`}
-                                id={`duration-${index}`}
-                                defaultValue={moment(event.end.dateTime).diff(event.start.dateTime, "hours")}
-                                value={moment(event.end.dateTime).diff(event.start.dateTime, "hours")}
-                              />
-                              {moment(event.end.dateTime).diff(event.start.dateTime, "hours").toFixed(2) + " hours" ?? ""}
+                              <input name={`duration-${index}`} id={`duration-${index}`} value={event.duration.toFixed(2) + " hours"} disabled />
                             </DurationCol>
                             <TypeCol>
                               <select name={`type-${index}`} id={`type-${index}`}>
@@ -290,30 +319,52 @@ const Timesheets = () => {
                               </select>
                             </TypeCol>
                             <ActionsCol>
-                              <FaCheck />
-                              <FaEdit />
-                              <FaTimes />
+                              <Actions>
+                                <ActionButton
+                                  type="button"
+                                  id={`confirm-${index}`}
+                                  className="confirm"
+                                  onClick={(ev) => {
+                                    modifyEvent(ev, "confirm");
+                                  }}
+                                >
+                                  <FaCheck className="icon" />
+                                </ActionButton>
+                                <ActionButton
+                                  type="button"
+                                  id={`modify-${index}`}
+                                  className="modify"
+                                  onClick={(ev) => {
+                                    modifyEvent(ev, "modify");
+                                  }}
+                                >
+                                  <FaPencilAlt className="icon" />
+                                </ActionButton>
+                                <ActionButton
+                                  type="button"
+                                  id={`delete-${index}`}
+                                  className="delete"
+                                  onClick={(ev) => {
+                                    modifyEvent(ev, "delete");
+                                  }}
+                                >
+                                  <FaTimes className="icon" />
+                                </ActionButton>
+                                <ActionButton type="button" id={`undo-${index}`} className="undo">
+                                  <FaUndo className="icon" />
+                                  <span>Undo?</span>
+                                </ActionButton>
+                                <ActionButton type="button" id={`save-${index}`} className="save">
+                                  <FaRegCheckSquare className="icon" />
+                                  <span>Save changes</span>
+                                </ActionButton>
+                              </Actions>
+                              <ActionComment id={`comment-${index}`} name={`comment-${index}`} className="comment"></ActionComment>
                             </ActionsCol>
                           </EventRow>
                         );
                       })}
                   </tbody>
-                  <tfoot>
-                    <SubTotalRow>
-                      <td colSpan={4}>
-                        Total: <span id="totalRows"></span> reports over <output id="totalDays" name="totalDays" htmlFor=""></output> days.
-                      </td>
-                      <td>
-                        <output id="totalHours" name="totalHours" htmlFor=""></output>
-                      </td>
-                      <td>
-                        <output id="types" name="types" htmlFor=""></output>
-                      </td>
-                      <td>
-                        <output id="summary" name="summary" htmlFor=""></output>
-                      </td>
-                    </SubTotalRow>
-                  </tfoot>
                 </Attendance>
               ) : (
                 <Loading />
@@ -412,8 +463,9 @@ const InfoValue = styled.h2`
 `;
 
 const Attendance = styled.table`
-  margin: 10px;
-  width: calc(100% - 20px);
+  margin: 10px auto;
+  max-width: calc(100% - 20px);
+
   border: 1px solid;
   border-collapse: collapse;
   max-height: 100%;
@@ -424,21 +476,143 @@ const Attendance = styled.table`
     border: 1px solid;
     padding: 5px;
   }
+  tr:nth-child(even) {
+    background-color: var(--shakes-blue1);
+  }
+  .ColTitle {
+    text-align: center;
+    font-weight: bold;
+    background-color: var(--shakes-blue2);
+  }
+
+  input {
+    border: none;
+    padding: 0;
+    background: none;
+    color: inherit;
+  }
 `;
 
 const SubmitBtn = styled.button``;
-const HiddenCol = styled.td`
-  display: none;
-`;
+
 const ClassNameCol = styled.th`
   text-align: left;
+  font-weight: normal;
 `;
-const DateCol = styled.td``;
-const TimeCol = styled.td``;
-const DurationCol = styled.td``;
-const TypeCol = styled.td``;
-const ActionsCol = styled.td``;
+const DateCol = styled.td`
+  input {
+    display: none;
+    ::-webkit-calendar-picker-indicator {
+      display: none;
+    }
+    ::-webkit-inner-spin-button {
+      display: none;
+    }
+  }
+`;
+const TimeCol = styled.td`
+  input {
+    display: none;
+    ::-webkit-inner-spin-button {
+      display: none;
+    }
+  }
+`;
+const DurationCol = styled.td`
+  text-align: right;
+  width: min-content;
 
+  input {
+    text-align: right;
+
+    border: none;
+    background: none;
+    color: inherit;
+    min-width: 85px;
+    width: 100%;
+    padding: 0;
+    max-width: 100%;
+  }
+`;
+const TypeCol = styled.td`
+  max-width: 150px;
+`;
+const ActionsCol = styled.td`
+  min-width: 110px;
+`;
+const Actions = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+`;
+const ActionButton = styled.button`
+  border: none;
+  padding: 0;
+  background: none;
+  border-radius: 50%;
+  aspect-ratio: 1 / 1;
+  min-width: 30px;
+
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 15pt;
+
+  &.confirm {
+    color: green;
+    &:hover {
+      background-color: greenyellow;
+    }
+  }
+  &.modify {
+    color: orange;
+    font-size: 14pt;
+
+    &:hover {
+      background-color: moccasin;
+    }
+  }
+  &.delete {
+    color: red;
+    &:hover {
+      background-color: lightcoral;
+    }
+  }
+
+  &.undo {
+    border-radius: 15px;
+    padding: 7px 3px;
+    aspect-ratio: unset;
+    display: none;
+    color: black;
+    font-size: 10pt;
+    .icon {
+      margin: 0 2px 0 5px;
+    }
+    &:hover {
+      background-color: lightgrey;
+    }
+  }
+
+  &.save {
+    border-radius: 15px;
+    padding: 7px 3px;
+    aspect-ratio: unset;
+    display: none;
+    color: black;
+    font-size: 10pt;
+    .icon {
+      margin: 0 2px 0 5px;
+    }
+    &:hover {
+      background-color: greenyellow;
+    }
+  }
+`;
+
+const ActionComment = styled.textarea`
+  display: none;
+`;
 const TitleRow = styled.tr``;
 const EventRow = styled.tr``;
-const SubTotalRow = styled.tr``;

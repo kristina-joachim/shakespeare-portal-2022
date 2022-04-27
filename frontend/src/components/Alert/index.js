@@ -1,11 +1,18 @@
 import styled from "styled-components";
 import { Link } from "react-router-dom";
+import { useState } from "react";
 
 const Alert = ({ title, text, link = "./" }) => {
+  const [dismissed, setDismissed] = useState(false);
+
+  const dismissAlert = (ev) => {
+    setDismissed(true);
+  };
+
   return (
     <>
-      <Wrapper>
-        <Dismiss>&times;</Dismiss>
+      <Wrapper hide={dismissed}>
+        <Dismiss onClick={dismissAlert}>&times;</Dismiss>
         <AlertBox to={link}>
           <Title>{title}</Title>
           <Desc>{text}</Desc>
@@ -17,7 +24,7 @@ const Alert = ({ title, text, link = "./" }) => {
 export default Alert;
 
 const Wrapper = styled.div`
-  display: flex;
+  display: ${(props) => (props.hide ? "none" : "flex")};
   color: black;
 `;
 

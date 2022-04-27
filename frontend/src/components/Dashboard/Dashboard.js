@@ -2,6 +2,8 @@ import { useContext, useEffect, useState } from "react";
 import styled from "styled-components";
 import { MyContext } from "../../context/Context";
 import Alert from "../Alert";
+import AlertBack from "../Alert/AlertBack";
+
 import Calendar from "../Calendar";
 import { ACTIONS, ENDPOINTS } from "../Shared/constants";
 import Header from "../Shared/Header";
@@ -16,7 +18,7 @@ const Dashboard = () => {
     state: { authToken, today },
     actions: { getServerData, dispatchAction },
   } = useContext(MyContext);
-  const [alerts, setAlerts] = useState([]);
+  const [alerts, setAlerts] = useState(null);
   const [cal, setCal] = useState(null);
   const [fullCal, setFullCal] = useState(null);
   const [allLoaded, setAllLoaded] = useState(false);
@@ -26,7 +28,7 @@ const Dashboard = () => {
     //is reporting deadline in the next 2 days?
     //currDate 26 Dec 21 00:01 EST
     const today = moment().format("DD MMM YY HH:mm") + " EST";
-    const tempState = alerts;
+    const tempState = new Set();
     //add date as search param
     const myUrl = generateURL(ENDPOINTS.tsByDate.url, { date: today });
 
@@ -34,15 +36,24 @@ const Dashboard = () => {
       if (results.error) dispatchAction({ type: ACTIONS.ERROR, data: { data: results, attemptedAction: "Getting today's pay period" } });
       else {
         let deadline = moment(results.data.deadline);
-        let daysUntil = deadline.diff(today, "days");
-        let hoursUntil = daysUntil < 1 && deadline.diff(today, "hours");
-        let isPassed = deadline.diff(today, "minutes") < 0;
+        let timeDiff = moment.duration(deadline.diff(today));
         let title = "Timesheets: Hours reporting deadline";
-        let message;
-        if (isPassed) {
-          message = `Your timesheets are overdue! You may not get paid on time. Please submit them as soon as possible`;
+        let text;
+
+        if (timeDiff < 0) {
+          // under 0 >> PASSED
+          text = `Warning!! Your timesheets are overdue! You may not get paid on time. Please submit them as soon as possible`;
+        } else if (timeDiff.as("minutes") < 60) {
+          // 0 - 60 minutes >> HURRY UP!!
+          text = `Warning!! Your timesheets are due in ${timeDiff.humanize(true)}! Please submit them as soon as possible`;
+        } else if (timeDiff.as("hours") < 24) {
+          // 24 - 12 hours >> Today!
+          text = `Your timesheets are due later today. Please submit them before ${deadline.format("lt")}!`;
+        } else if (timeDiff.as("hours") >= 24) {
+          //  24+ hours >> In X days
+          text = `Your timesheets are due in ${timeDiff.humanize(true)}!`;
         }
-        tempState.push({ title, message, link: "./timesheets" });
+        tempState.add({ title, text, link: "/timesheets" });
         setAlerts(tempState);
       }
     });
@@ -138,7 +149,7 @@ const Dashboard = () => {
 
   //Flag when all is loaded
   useEffect(() => {
-    if (fullCal != null && today != null) setAllLoaded(true);
+    if (fullCal != null && today != null && alerts != null) setAllLoaded(true);
     else setAllLoaded(false);
   }, [fullCal, today]);
 
@@ -149,12 +160,13 @@ const Dashboard = () => {
         <Content>
           <FloatBoxes>
             <FlexCol className="classes">
-              <FloatBox>
+              <FloatBox className="alerts">
+                <AlertBack />
                 <BoxTitle>Alerts</BoxTitle>
                 <BoxContent>
-                  {alerts.length
-                    ? alerts.map((alert, i) => {
-                        return <Alert key={`alert-${i}`} id={`alert-${i}`} title={alert.title} text={alert.text} link={alert.link} />;
+                  {alerts.size
+                    ? Array.from(alerts.values()).map((alert, i) => {
+                        return alert.dismissed == null && <Alert key={`alert-${i}`} id={`alert-${i}`} title={alert.title} text={alert.text} link={alert.link} />;
                       })
                     : "No alerts."}
                 </BoxContent>
@@ -259,6 +271,18 @@ const FloatBox = styled.div`
   background: linear-gradient(to top, #ccffff -10%, #ffffff 90%);
   padding: 20px;
   box-shadow: 0 2px 5px 1px var(--shakes-grey);
+
+  &.alerts {
+    z-index: 1;
+    position: relative;
+    display: flex;
+    flex-flow: column;
+    gap: 10px;
+    border-radius: 15px;
+    padding: 10px;
+    background: linear-gradient(to right, rgba(255, 99, 71, 0.5) -10%, #ffffff 150%);
+    background-color: rgba(255, 99, 71, 0.5);
+  }
 `;
 
 const BoxTitle = styled.h2`
