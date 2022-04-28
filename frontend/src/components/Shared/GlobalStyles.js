@@ -1,6 +1,6 @@
 import { createGlobalStyle } from "styled-components";
 
-// export const breakpoints = { tablet: "600px" };
+export const breakpoints = { sidebar: "900px" };
 
 const GlobalStyles = createGlobalStyle`
   :root {
@@ -96,7 +96,6 @@ const GlobalStyles = createGlobalStyle`
     flex-flow: column nowrap;
     width: 100%;
     height: 100%;
-    min-width: 500px;
     min-height: 100%;
     font-family: var(--main-font);
     color: var(--text-color);

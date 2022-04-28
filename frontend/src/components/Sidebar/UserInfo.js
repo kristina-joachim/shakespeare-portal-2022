@@ -3,6 +3,7 @@ import { useContext, useEffect, useState } from "react";
 import { MyContext } from "../../context/Context";
 import { ENDPOINTS } from "../Shared/constants";
 import { getInitials, getRandomHexColor } from "../Shared/utils";
+import { breakpoints } from "../Shared/GlobalStyles";
 
 const UserInfo = () => {
   const {
@@ -76,7 +77,7 @@ const Avatar = styled.img`
   justify-content: center;
   align-items: center;
 
-  @media screen and (max-width: 600px) {
+  @media screen and (max-width: ${breakpoints.sidebar}) {
     font-size: 12pt;
     width: 60px;
     box-shadow: 0 0 4px 1px ${(props) => props.myColors.back};
@@ -85,7 +86,7 @@ const Avatar = styled.img`
 
 const Greeting = styled.h3`
   margin: 10px 0 5px;
-  @media screen and (max-width: 600px) {
+  @media screen and (max-width: ${breakpoints.sidebar}) {
     display: none;
   }
 `;
@@ -94,7 +95,7 @@ const Email = styled.h6`
   margin: 0 0 30px;
   color: var(--main-color);
 
-  @media screen and (max-width: 600px) {
+  @media screen and (max-width: ${breakpoints.sidebar}) {
     display: none;
   }
 `;

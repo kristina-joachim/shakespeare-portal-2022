@@ -4,6 +4,7 @@ import Shortcuts from "./Shortcuts";
 import NavBar from "./NavBar";
 import UserInfo from "./UserInfo";
 import { NavLink } from "react-router-dom";
+import { breakpoints } from "../Shared/GlobalStyles";
 
 const SideBar = () => {
   return (
@@ -43,7 +44,7 @@ const Content = styled.div`
   padding: 15px 5px;
   border-radius: 15px;
 
-  @media screen and (max-width: 600px) {
+  @media screen and (max-width: ${breakpoints.sidebar}) {
     padding: 5px;
     width: 80px;
   }
@@ -58,7 +59,7 @@ const Section = styled.div`
   flex-flow: column nowrap;
   align-items: center;
 
-  @media screen and (max-width: 600px) {
+  @media screen and (max-width: ${breakpoints.sidebar}) {
     align-items: center;
   }
 `;
@@ -71,7 +72,7 @@ const Logo = styled.img`
     display: none;
   }
 
-  @media screen and (max-width: 600px) {
+  @media screen and (max-width: ${breakpoints.sidebar}) {
     display: none;
     &.icon {
       display: block;
@@ -100,7 +101,7 @@ const LogOutBtn = styled(NavLink)`
     background-color: var(--shakes-blue1);
   }
 
-  @media screen and (max-width: 600px) {
+  @media screen and (max-width: ${breakpoints.sidebar}) {
     border-radius: 50%;
     aspect-ratio: 1/1;
     .icon {
@@ -116,7 +117,7 @@ const ItemName = styled.p`
   padding: 0 10px;
   font-variant: small-caps;
 
-  @media screen and (max-width: 600px) {
+  @media screen and (max-width: ${breakpoints.sidebar}) {
     display: none;
   }
 `;

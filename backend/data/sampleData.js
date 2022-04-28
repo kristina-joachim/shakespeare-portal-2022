@@ -5,7 +5,7 @@ const sampleTimesheets = {
   received: 1,
   timesheets: {
     "maria@ecoleshakespeare.com": {
-      status: "awaitingApproval", //draft, toReview, accepted, rejected, paid
+      status: "awaitingApproval", //incomplete, toReview, accepted, rejected, paid
       total: 18.5, //hour count
       count: 13, //separate events?
 

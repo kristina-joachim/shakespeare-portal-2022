@@ -1,6 +1,7 @@
 import styled from "styled-components";
 import { NavLink } from "react-router-dom";
 import { FaHome } from "react-icons/fa";
+import { breakpoints } from "../Shared/GlobalStyles";
 
 const NavBar = () => {
   return (
@@ -49,7 +50,7 @@ const NavItem = styled(NavLink)`
     color: var(--shakes-blue3);
   }
 
-  @media screen and (max-width: 600px) {
+  @media screen and (max-width: ${breakpoints.sidebar}) {
     border-radius: 50%;
     aspect-ratio: 1/1;
     justify-content: center;
@@ -71,7 +72,7 @@ const ItemName = styled.p`
   padding: 0 10px;
   font-variant: small-caps;
 
-  @media screen and (max-width: 600px) {
+  @media screen and (max-width: ${breakpoints.sidebar}) {
     display: none;
   }
 `;

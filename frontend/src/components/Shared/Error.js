@@ -127,7 +127,7 @@ const Logo = styled.img`
   padding: 0 5px;
   object-fit: contain;
   opacity: 0.4;
-  z-index: -10;
+  z-index: -1;
 `;
 const Title = styled.h1`
   text-align: left;

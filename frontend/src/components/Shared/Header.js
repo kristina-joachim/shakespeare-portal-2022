@@ -21,5 +21,5 @@ const TopBar = styled.div`
   background: linear-gradient(to top, var(--shakes-blue1), #ffffff 100%);
   border-bottom: 2px solid var(--shakes-blue1);
   border-radius: 15px 15px 0 0;
-  z-index: 2px;
+  z-index: 2;
 `;

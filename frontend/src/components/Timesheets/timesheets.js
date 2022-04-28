@@ -5,19 +5,25 @@ import { ACTIONS, ENDPOINTS } from "../Shared/constants";
 import Loading from "../Shared/Loading";
 import { generateURL } from "../Shared/utils";
 import Header from "../Shared/Header";
-import { FaCheck, FaChevronLeft, FaChevronRight, FaPencilAlt, FaRegCheckSquare, FaTimes, FaUndo } from "react-icons/fa";
-
+import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import EventRow from "./EventRow";
+import { ActionsCol, DateCol, DurationCol, TimeCol, TypeCol, ClassNameCol } from "./styles";
 import moment from "moment";
+import ModifyEvent from "./ModifyEvent";
 moment().locale("en-ca");
 
 const Timesheets = () => {
+  const [showModal, setShowModal] = useState(false);
+  const toggleModal = () => {
+    setShowModal(!showModal);
+  };
   const [payPeriod, setPayPeriod] = useState(null); //fetch payperiod based on current date.
   const [periodEvents, setPeriodEvents] = useState(null);
   const [timesheet, setTimesheet] = useState({
-    status: "",
-    total: "",
-    count: "",
-    hours: [],
+    status: "incomplete",
+    total: 0,
+    count: 0,
+    hours: null,
   });
 
   const {
@@ -123,6 +129,8 @@ const Timesheets = () => {
           event.duration = moment.duration(diff).as("hours");
         });
         setPeriodEvents({ payPeriod: payPeriod._id, events: susansEvents });
+        const myHours = new Array(susansEvents.length);
+        setTimesheet({ ...timesheet, count: susansEvents.length, hours: myHours.fill(null) });
       }
     });
   };
@@ -191,52 +199,13 @@ const Timesheets = () => {
     return;
   };
 
-  const modifyEvent = (ev, type) => {
-    ev.preventDefault();
-    let myElement = ev.target;
-    while (myElement.tagName !== "TR") {
-      let parent = myElement.parentElement;
-      myElement = parent;
-    }
-    //let calID = myElement.id.split("_|_")[1];
-    let eventIndex = myElement.id.split("_|_")[0];
-    //let myEvent = periodEvents.events.find((event) => event.iCalUId === calID);
-    switch (type) {
-      case "confirm":
-        const start = moment(document.getElementById(`date-${eventIndex}`).value, moment.HTML5_FMT.DATE, document.getElementById(`start-${eventIndex}`).value, moment.HTML5_FMT.TIME);
-        const end = moment(document.getElementById(`date-${eventIndex}`).value, moment.HTML5_FMT.DATE, document.getElementById(`end-${eventIndex}`).value, moment.HTML5_FMT.TIME);
-        console.info("START", start);
-        const hourToAdd = {
-          start: start.toJSON(),
-          end: end.toJSON(),
-          duration: Number(document.getElementById(`duration-${eventIndex}`).value.split(" ")[0]),
-          type: document.getElementById(`type-${eventIndex}`).value,
-          name: document.getElementById(`name-${eventIndex}`).value,
-        };
-
-        console.info("HOUR TO ADD", hourToAdd);
-
-        //Styling for confirmed.
-        myElement.style.backgroundColor = "lightgreen";
-        document.getElementById(`type-${eventIndex}`).disabled = true;
-        document.getElementById(`confirm-${eventIndex}`).style.border = "1px solid currentColor";
-        document.getElementById(`delete-${eventIndex}`).style.display = "none";
-        document.getElementById(`modify-${eventIndex}`).style.display = "none";
-        document.getElementById(`undo-${eventIndex}`).style.display = "inline-flex";
-        break;
-      case "modify":
-        break;
-      case "delete":
-        break;
-      default:
-        break;
-    }
-  };
+  //Event Actions
 
   return (
     <>
       <Header title={"Timesheets!"} />
       <Content>
+        {showModal && <ModifyEvent />}
         {payPeriod == null ? (
           <Loading />
         ) : (
@@ -267,7 +236,7 @@ const Timesheets = () => {
                 <InfoValue>{moment(payPeriod.end).format("ddd, ll")}</InfoValue>
               </InfoItem>
             </InfoNav>
-            <form name="timesheet" onLoad={updateData} onChange={updateData} onInput={updateData}>
+            <FormBox name="timesheet" onLoad={updateData} onChange={updateData} onInput={updateData}>
               {periodEvents != null && periodEvents.payPeriod === payPeriod._id ? (
                 <Attendance>
                   <thead>
@@ -284,95 +253,23 @@ const Timesheets = () => {
                     {periodEvents.events
                       .sort((a, b) => moment(a.start.dateTime).toDate() - moment(b.start.dateTime).toDate())
                       .map((event, index) => {
-                        return (
-                          <EventRow key={`pp-${payPeriod._id.split("-").pop()}-event-${index}`} id={`${index}_|_${event.iCalUId}`}>
-                            <ClassNameCol>
-                              <input name={`name-${index}`} id={`name-${index}`} value={event.subject} disabled />
-                            </ClassNameCol>
-                            <DateCol>
-                              <p>{moment(event.start.dateTime).isSame(event.end.dateTime, "day") ? moment(event.start.dateTime).format("ddd, ll") : ""}</p>
-                              <input
-                                name={`date-${index}`}
-                                id={`date-${index}`}
-                                type="date"
-                                value={moment(event.start.dateTime).isSame(event.end.dateTime, "day") ? moment(event.start.dateTime).format("YYYY-MM-DD") : ""}
-                                disabled
-                              />
-                            </DateCol>
-                            <TimeCol className="ev-time">
-                              <p>
-                                {moment(event.start.dateTime).format("h:mm a")} - {moment(event.end.dateTime).format("h:mm a")}
-                              </p>
-                              <input name={`start-${index}`} id={`start-${index}`} type="time" value={moment(event.start.dateTime).format("hh:mm")} disabled />
-                              <input name={`end-${index}`} id={`end-${index}`} type="time" value={moment(event.end.dateTime).format("hh:mm")} disabled />
-                            </TimeCol>
-                            <DurationCol>
-                              <input name={`duration-${index}`} id={`duration-${index}`} value={event.duration.toFixed(2) + " hours"} disabled />
-                            </DurationCol>
-                            <TypeCol>
-                              <select name={`type-${index}`} id={`type-${index}`}>
-                                <option value="class">Class</option>
-                                <option value="cxl">Class (CXL)</option>
-                                <option value="eval">Evaluation</option>
-                                <option value="admin">Admin</option>
-                                <option value="travel">Travel</option>
-                              </select>
-                            </TypeCol>
-                            <ActionsCol>
-                              <Actions>
-                                <ActionButton
-                                  type="button"
-                                  id={`confirm-${index}`}
-                                  className="confirm"
-                                  onClick={(ev) => {
-                                    modifyEvent(ev, "confirm");
-                                  }}
-                                >
-                                  <FaCheck className="icon" />
-                                </ActionButton>
-                                <ActionButton
-                                  type="button"
-                                  id={`modify-${index}`}
-                                  className="modify"
-                                  onClick={(ev) => {
-                                    modifyEvent(ev, "modify");
-                                  }}
-                                >
-                                  <FaPencilAlt className="icon" />
-                                </ActionButton>
-                                <ActionButton
-                                  type="button"
-                                  id={`delete-${index}`}
-                                  className="delete"
-                                  onClick={(ev) => {
-                                    modifyEvent(ev, "delete");
-                                  }}
-                                >
-                                  <FaTimes className="icon" />
-                                </ActionButton>
-                                <ActionButton type="button" id={`undo-${index}`} className="undo">
-                                  <FaUndo className="icon" />
-                                  <span>Undo?</span>
-                                </ActionButton>
-                                <ActionButton type="button" id={`save-${index}`} className="save">
-                                  <FaRegCheckSquare className="icon" />
-                                  <span>Save changes</span>
-                                </ActionButton>
-                              </Actions>
-                              <ActionComment id={`comment-${index}`} name={`comment-${index}`} className="comment"></ActionComment>
-                            </ActionsCol>
-                          </EventRow>
-                        );
+                        return <EventRow key={`pp-${payPeriod._id.split("-").pop()}-event-${index}`} event={event} index={index} state={[timesheet, setTimesheet]} modifyHandler={toggleModal} />;
                       })}
                   </tbody>
+                  <tfoot>
+                    <tr>
+                      <td colSpan={6}>
+                        <SubmitBtn type="submit" disabled={timesheet.hours == null ? true : timesheet.hours.some((event) => event == null)}>
+                          Submit hours
+                        </SubmitBtn>
+                      </td>
+                    </tr>
+                  </tfoot>
                 </Attendance>
               ) : (
                 <Loading />
               )}
-              <SubmitBtn type="submit" disabled>
-                Submit hours
-              </SubmitBtn>
-            </form>
+            </FormBox>
           </>
         )}
       </Content>
@@ -383,18 +280,19 @@ const Timesheets = () => {
 export default Timesheets;
 
 const Content = styled.div`
+  position: relative;
   background: linear-gradient(to right, var(--shakes-blue1) -50%, #ffffff 110%);
   height: 100%;
   width: 100%;
   border-radius: 0 0 15px 15px;
-  padding: 10px;
   display: flex;
   flex-direction: column;
+  min-width: 500px;
   overflow-y: auto;
 `;
 
 const TitleNav = styled.div`
-  margin: 10px;
+  padding: 10px;
   display: flex;
   font-variant: small-caps;
 `;
@@ -442,6 +340,7 @@ const InfoNav = styled.div`
   justify-content: space-between;
   align-items: center;
   margin: 10px 0 20px;
+  padding: 10px;
   gap: 20px;
 `;
 
@@ -462,9 +361,13 @@ const InfoValue = styled.h2`
   white-space: nowrap;
 `;
 
+const FormBox = styled.form`
+  padding: 10px;
+  flex: 1;
+`;
 const Attendance = styled.table`
   margin: 10px auto;
-  max-width: calc(100% - 20px);
+  max-width: calc(100% - 40px);
 
   border: 1px solid;
   border-collapse: collapse;
@@ -476,143 +379,14 @@ const Attendance = styled.table`
     border: 1px solid;
     padding: 5px;
   }
-  tr:nth-child(even) {
-    background-color: var(--shakes-blue1);
-  }
+
   .ColTitle {
     text-align: center;
     font-weight: bold;
     background-color: var(--shakes-blue2);
   }
-
-  input {
-    border: none;
-    padding: 0;
-    background: none;
-    color: inherit;
-  }
 `;
 
 const SubmitBtn = styled.button``;
 
-const ClassNameCol = styled.th`
-  text-align: left;
-  font-weight: normal;
-`;
-const DateCol = styled.td`
-  input {
-    display: none;
-    ::-webkit-calendar-picker-indicator {
-      display: none;
-    }
-    ::-webkit-inner-spin-button {
-      display: none;
-    }
-  }
-`;
-const TimeCol = styled.td`
-  input {
-    display: none;
-    ::-webkit-inner-spin-button {
-      display: none;
-    }
-  }
-`;
-const DurationCol = styled.td`
-  text-align: right;
-  width: min-content;
-
-  input {
-    text-align: right;
-
-    border: none;
-    background: none;
-    color: inherit;
-    min-width: 85px;
-    width: 100%;
-    padding: 0;
-    max-width: 100%;
-  }
-`;
-const TypeCol = styled.td`
-  max-width: 150px;
-`;
-const ActionsCol = styled.td`
-  min-width: 110px;
-`;
-const Actions = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-`;
-const ActionButton = styled.button`
-  border: none;
-  padding: 0;
-  background: none;
-  border-radius: 50%;
-  aspect-ratio: 1 / 1;
-  min-width: 30px;
-
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 15pt;
-
-  &.confirm {
-    color: green;
-    &:hover {
-      background-color: greenyellow;
-    }
-  }
-  &.modify {
-    color: orange;
-    font-size: 14pt;
-
-    &:hover {
-      background-color: moccasin;
-    }
-  }
-  &.delete {
-    color: red;
-    &:hover {
-      background-color: lightcoral;
-    }
-  }
-
-  &.undo {
-    border-radius: 15px;
-    padding: 7px 3px;
-    aspect-ratio: unset;
-    display: none;
-    color: black;
-    font-size: 10pt;
-    .icon {
-      margin: 0 2px 0 5px;
-    }
-    &:hover {
-      background-color: lightgrey;
-    }
-  }
-
-  &.save {
-    border-radius: 15px;
-    padding: 7px 3px;
-    aspect-ratio: unset;
-    display: none;
-    color: black;
-    font-size: 10pt;
-    .icon {
-      margin: 0 2px 0 5px;
-    }
-    &:hover {
-      background-color: greenyellow;
-    }
-  }
-`;
-
-const ActionComment = styled.textarea`
-  display: none;
-`;
 const TitleRow = styled.tr``;
-const EventRow = styled.tr``;

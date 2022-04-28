@@ -1,5 +1,6 @@
 import styled from "styled-components";
 import { SiMicrosoftoutlook, SiMicrosoftteams } from "react-icons/si";
+import { breakpoints } from "../Shared/GlobalStyles";
 
 const Shortcuts = () => {
   return (
@@ -40,7 +41,7 @@ const Content = styled.div`
     bottom: -10px;
     right: 5px;
   }
-  @media screen and (max-width: 600px) {
+  @media screen and (max-width: ${breakpoints.sidebar}) {
     align-items: center;
 
     &::before {
@@ -79,7 +80,7 @@ const Desc = styled.p`
   padding: 0 10px;
   font-variant: small-caps;
 
-  @media screen and (max-width: 600px) {
+  @media screen and (max-width: ${breakpoints.sidebar}) {
     display: none;
   }
 `;
